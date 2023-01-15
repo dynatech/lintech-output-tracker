@@ -31,6 +31,7 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 
@@ -39,6 +40,7 @@ import useScrollTrigger from "@mui/material/useScrollTrigger";
 import Chip from '@mui/material/Chip';
 import Autocomplete from '@mui/material/Autocomplete';
 import axios from 'axios';
+import Swal from 'sweetalert2'
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialogContent-root': {
@@ -91,6 +93,8 @@ const Overview = () => {
     const [selectedMajorOutputValue, setSelectedMajorOutputValue] = useState('');
     const [assignedMemberValue, setAssignedMemberValue] =  useState('');
     const [outputDetails, setOutputDetails] = useState('');
+    const [outputNotes, setOutputNotes] = useState('');
+    const [runningTimerList, setRunningTimerList] = useState([]);
 
     const handleClickOpen = () => {
       setOpen(true);
@@ -99,10 +103,58 @@ const Overview = () => {
       setOpen(false);
     };
 
+    const resetForm = () => {
+        setAssignedTo([]);
+        setOutputDetails('');
+        setOutputNotes('');
+        setSelectedMajorOutput(null);
+    }
+
     const handleSave = () => {
-        console.log("ASSIGNED TO:", asssignedTo);
-        console.log("outputDetails:", outputDetails);
-        console.log("selectedMajorOutput:", selectedMajorOutput);
+        axios.post('http://localhost:6969/save_task', {
+            major_output: selectedMajorOutput,
+            output_details: outputDetails,
+            assigned_to: asssignedTo,
+            output_notes: outputNotes,
+            user_id: JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id']
+        })
+        .then(function (response) {
+            if (response.data.status == true) {
+                handleClose();
+                let timerInterval;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Task Saved Successfully!',
+                    text: response.data.message,
+                    footer: '<div />',
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: () => {
+                        Swal.showLoading()
+                        const b = Swal.getHtmlContainer().querySelector('b')
+                        timerInterval = setInterval(() => {
+                        b.textContent = Swal.getTimerLeft()
+                        }, 100)
+                    },
+                    willClose: () => {
+                        clearInterval(timerInterval)
+                    },
+                    showConfirmButton: false 
+                }).then(()=> {
+                    resetForm();
+                    getTasks();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: response.data.message,
+                });
+            }
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
     }
     
     const trigger = useScrollTrigger({
@@ -119,7 +171,7 @@ const Overview = () => {
         let user_id = JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id'];
         axios.get(`http://localhost:6969/get_tasks/${user_id}`)
         .then(function (response) {
-            // console.log(response.data);
+            setTaskList(response.data.data)
           })
           .catch(function (error) {
             // handle error
@@ -156,6 +208,24 @@ const Overview = () => {
           .then(function () {
             // 
           });
+    }
+
+    const toggleTimer = (id) => {
+        let temp = [...runningTimerList];
+        let index = runningTimerList.indexOf(id);
+        if (index == -1) {
+            temp.push(id)
+            setRunningTimerList(temp)
+        } else {
+            temp.splice(index, 1);
+            setRunningTimerList(temp)
+        }
+    }
+
+    const TimerButtons = ({task}) => {
+        return (
+            <Button startIcon={<PlayCircleOutlineIcon/>} onClick={()=> toggleTimer(task)}>Start timer</Button>
+        )
     }
 
     useEffect(()=> {
@@ -201,7 +271,7 @@ const Overview = () => {
                             minHeight: 400}}>
                             {
                                 currentTaskList.length != 0 ?
-                                    currentTaskList.map(()=> (
+                                    currentTaskList.map((element)=> (
                                         <Accordion>
                                             <AccordionSummary
                                             expandIcon={<ExpandMoreIcon />}
@@ -210,13 +280,17 @@ const Overview = () => {
                                             >
                                                 <Grid container>
                                                     <Grid item xs={7}>
-                                                        <Typography style={{fontWeight: 500}}>2.2.1 EWS-L Monitoring Tools Maintenance</Typography>
-                                                        <Typography variant="overline">Update python version</Typography>
+                                                        <Typography style={{fontWeight: 500}}>{element.major_output}</Typography>
+                                                        <Typography variant="overline">{element.actual_outputs}</Typography>
                                                     </Grid>
                                                     <Grid item xs={5}>
                                                         <Grid container sx={{textAlign: 'right', pt: 1}} justifyContent="flex-end">
                                                             <Grid item xs={4}>
-                                                                <Button startIcon={<PlayCircleOutlineIcon/>}>Start timer</Button>
+                                                                <Button color={runningTimerList.indexOf(element.output_id) == -1 ? "primary" : "error"} startIcon={runningTimerList.indexOf(element.output_id) == -1 ? <PlayCircleOutlineIcon/> : <PauseCircleOutlineIcon />} onClick={()=> toggleTimer(element.output_id)}>
+                                                                    {
+                                                                        runningTimerList.indexOf(element.output_id) == -1 ? "Start Timer" : "Stop Timer"
+                                                                    }
+                                                                </Button>
                                                             </Grid>
                                                             <Grid item xs={4}>
                                                                 <Button startIcon={<CheckCircleOutlineIcon/>} color="success">Mark as done</Button>
@@ -227,8 +301,14 @@ const Overview = () => {
                                             </AccordionSummary>
                                             <AccordionDetails>
                                             <Typography>
-                                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
-                                                malesuada lacus ex, sit amet blandit leo lobortis eget.
+                                                {
+                                                    element.details != "" && element.details != null ? 
+                                                        element.details
+                                                    :
+                                                        <Typography>
+                                                            <Box sx={{ fontStyle: 'italic', m: 1 }}>Wala kang nilagay na details. Kasalanan mo kung bakit ka nalilito kung ano tong task na to.</Box>
+                                                        </Typography>
+                                                }
                                             </Typography>
                                             </AccordionDetails>
                                         </Accordion>
@@ -306,8 +386,10 @@ const Overview = () => {
                                        if (newValue != null) {
                                         let member = memberList.find(x => x.fullname === newValue);
                                         let temp = [...asssignedTo]
-                                        temp.push(member)
-                                        setAssignedTo(temp);
+                                        if (temp.indexOf(member) == -1) {
+                                            temp.push(member)
+                                            setAssignedTo(temp);
+                                        }
                                        }
                                     }}
                                 />
@@ -335,14 +417,26 @@ const Overview = () => {
                                 <TextField
                                     sx={{width: '100%'}}
                                     id="filled-helperText"
+                                    label="Output Title"
+                                    defaultValue=""
+                                    helperText="Title ng output (Sa tagalog, Kung ano tawag sa ginagawa mo)"
+                                    variant="outlined"
+                                    value={outputDetails}
+                                    onChange={(e) => setOutputDetails(e.target.value)}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    sx={{width: '100%'}}
+                                    id="filled-helperText"
                                     label="Output details"
                                     defaultValue=""
                                     multiline
                                     rows={5}
                                     helperText="Details ng output ilagay mo dito. Bawal blanko."
                                     variant="outlined"
-                                    value={outputDetails}
-                                    onChange={(e) => setOutputDetails(e.target.value)}
+                                    value={outputNotes}
+                                    onChange={(e) => setOutputNotes(e.target.value)}
                                 />
                             </Grid>
                         </Grid>

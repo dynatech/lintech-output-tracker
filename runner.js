@@ -39,6 +39,23 @@ app.post("/login", (req, res) => {
     });
 });
 
+app.post("/save_task", (req, res) => {
+    req.body.assigned_to.forEach(element => {
+        let req_status = true;
+        let query = `INSERT INTO log_frame_outputs VALUES (0, ${req.body.major_output.id}, ${element.user_id}, '${req.body.output_details}', 0, '${req.body.output_notes}');`
+        local.query(query, (err, result) => {
+            if (err) {
+                req_status = false
+            }
+        });
+        res.send({
+            status: req_status,
+            message: "Wow ha. Kala mo nag ttrabaho"
+        });
+    });
+
+});
+
 app.get("/get_tasks/:user_id", (req, res) => {
     let query = "SELECT * FROM commons_db.log_frame " + 
                 `INNER JOIN log_frame_outputs ON log_frame.id = log_frame_outputs.log_frame_id where log_frame_outputs.user_id = ${req.params.user_id};`;
