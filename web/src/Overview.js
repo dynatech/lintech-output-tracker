@@ -82,10 +82,15 @@ function BootstrapDialogTitle(props: DialogTitleProps) {
 
 const Overview = () => {
     const [open, setOpen] = useState(false);
-    const [asssignedTo, setAssigned] = useState([{'name': 'John'}]);
+    const [asssignedTo, setAssignedTo] = useState([]);
     const [majorOutputList, setOutputList] = useState([]);
     const [currentTaskList, setTaskList] = useState([]);
     const [memberList, setMemberList] = useState([]);
+    
+    const [selectedMajorOutput, setSelectedMajorOutput] = useState(null);
+    const [selectedMajorOutputValue, setSelectedMajorOutputValue] = useState('');
+    const [assignedMemberValue, setAssignedMemberValue] =  useState('');
+    const [outputDetails, setOutputDetails] = useState('');
 
     const handleClickOpen = () => {
       setOpen(true);
@@ -93,6 +98,12 @@ const Overview = () => {
     const handleClose = () => {
       setOpen(false);
     };
+
+    const handleSave = () => {
+        console.log("ASSIGNED TO:", asssignedTo);
+        console.log("outputDetails:", outputDetails);
+        console.log("selectedMajorOutput:", selectedMajorOutput);
+    }
     
     const trigger = useScrollTrigger({
         target: document.body,
@@ -108,7 +119,35 @@ const Overview = () => {
         let user_id = JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id'];
         axios.get(`http://localhost:6969/get_tasks/${user_id}`)
         .then(function (response) {
-            console.log(response.data);
+            // console.log(response.data);
+          })
+          .catch(function (error) {
+            // handle error
+            console.log(error);
+          })
+          .then(function () {
+            // 
+          });
+    }
+
+    const getMajorOutputList = () => {
+        axios.get(`http://localhost:6969/get_major_outputs`)
+        .then(function (response) {
+            setOutputList(response.data.data)
+          })
+          .catch(function (error) {
+            // handle error
+            console.log(error);
+          })
+          .then(function () {
+            // 
+          });
+    }
+
+    const getUsers = () => {
+        axios.get(`http://localhost:6969/get_users`)
+        .then(function (response) {
+            setMemberList(response.data.data)
           })
           .catch(function (error) {
             // handle error
@@ -121,6 +160,8 @@ const Overview = () => {
 
     useEffect(()=> {
         getTasks();
+        getMajorOutputList();
+        getUsers();
     }, []);
 
     return (
@@ -236,23 +277,39 @@ const Overview = () => {
                                 <Autocomplete
                                     id="output-autocomplete"
                                     freeSolo
-                                    options={majorOutputList.map((option) => option.name)}
-                                    renderInput={(params) => <TextField {...params} label="Task / Output" 
+                                    options={majorOutputList.map((option) => option.major_output)}
+                                    renderInput={(params) => <TextField {...params} label="Task / Output" />}
                                     sx={{width: '100%'}}
                                     helperText="E.g. 2.2.1 EWS-L Monitoring Tools Maintenance"
-                                    variant="outlined"/>}
+                                    variant="outlined" 
+                                    value={selectedMajorOutputValue}
+                                    onChange={(event: any, newValue: string | null) => {
+                                        if (newValue != null) {
+                                         let output = majorOutputList.find(x => x.major_output === newValue);
+                                         setSelectedMajorOutput(output)
+                                        }
+                                     }}
                                 />
                             </Grid>
                             <Grid item xs={12}>
                                 <Autocomplete
                                     disablePortal
                                     id="member-list-combo"
-                                    options={memberList}
+                                    options={memberList.map((option) => option.fullname)}
                                     sx={{ width: '100%' }}
-                                    renderInput={(params) => <TextField {...params} 
+                                    renderInput={(params) => <TextField {...params} label="Search user(s)" />}
                                     label="Assign it to"
                                     helperText="Sino my kasalanan pag di nagawa ang task"
-                                    variant="outlined" />}
+                                    variant="outlined"
+                                    value={assignedMemberValue}
+                                    onChange={(event: any, newValue: string | null) => {
+                                       if (newValue != null) {
+                                        let member = memberList.find(x => x.fullname === newValue);
+                                        let temp = [...asssignedTo]
+                                        temp.push(member)
+                                        setAssignedTo(temp);
+                                       }
+                                    }}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -262,9 +319,16 @@ const Overview = () => {
                                             No assigned person(s) yet
                                         </Typography>
                                     :
-                                        asssignedTo.map((el)=> (
-                                            <Chip label={el.name} onDelete={()=> {}} />
-                                        ))
+                                        <div>
+                                            <Typography sx={{p: 2}}>
+                                                Assigned to: 
+                                            </Typography>
+                                           {
+                                             asssignedTo.map((el)=> (
+                                                <Chip label={el.fullname} onDelete={()=> {}} />
+                                            ))
+                                           }
+                                        </div>
                                 }
                             </Grid>
                             <Grid item xs={12}>
@@ -277,6 +341,8 @@ const Overview = () => {
                                     rows={5}
                                     helperText="Details ng output ilagay mo dito. Bawal blanko."
                                     variant="outlined"
+                                    value={outputDetails}
+                                    onChange={(e) => setOutputDetails(e.target.value)}
                                 />
                             </Grid>
                         </Grid>
@@ -288,7 +354,7 @@ const Overview = () => {
                 }}>
                     Reset form
                 </Button>
-                <Button autoFocus onClick={handleClose}>
+                <Button autoFocus onClick={handleSave}>
                     Save changes
                 </Button>
                 </DialogActions>

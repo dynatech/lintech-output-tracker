@@ -62,7 +62,38 @@ app.get("/get_tasks/:user_id", (req, res) => {
             data: return_value
         });
     });
-})
+});
+
+app.get("/get_major_outputs", (req, res) => {
+    let query = "SELECT * FROM commons_db.log_frame;";
+    local.query(query, (err, result) => {
+        let return_value = [];
+        result.forEach(element => {
+            return_value.push(element);
+        });
+        res.send({
+            status: true,
+            data: return_value
+        });
+    });
+});
+
+app.get("/get_users", (req, res) => {
+    let query = "SELECT user_id, first_name, last_name FROM commons_db.users INNER JOIN user_accounts ON users.user_id = user_accounts.user_fk_id;";
+    local.query(query, (err, result) => {
+        let return_value = [];
+        result.forEach(element => {
+            return_value.push({
+                user_id: element.user_id,
+                fullname: `${element.first_name} ${element.last_name}`
+            });
+        });
+        res.send({
+            status: true,
+            data: return_value
+        });
+    });
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
