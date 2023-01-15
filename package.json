@@ -1,0 +1,23 @@
+{
+  "name": "lintech-server",
+  "version": "1.0.0",
+  "main": "runner.js",
+  "scripts": {
+    "start": "nodemon runner.js",
+    "server": "nodemon runner.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "js-sha512": "^0.8.0",
+    "moment": "^2.29.4",
+    "mysql2": "^3.0.0-rc.1",
+    "nodemon": "^2.0.20"
+  },
+  "devDependencies": {},
+  "description": ""
+}
