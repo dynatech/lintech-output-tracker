@@ -59,6 +59,8 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 
 function BootstrapDialogTitle(props: DialogTitleProps) {
     const { children, onClose, ...other } = props;
+
+    const IP_ADDR = "http://192.168.150.108:6969";
   
     return (
       <DialogTitle sx={{ m: 0, p: 2 }} {...other}>
@@ -111,7 +113,7 @@ const Overview = () => {
     }
 
     const handleSave = () => {
-        axios.post('http://localhost:6969/save_task', {
+        axios.post(`${IP_ADDR}/save_task`, {
             major_output: selectedMajorOutput,
             output_details: outputDetails,
             assigned_to: asssignedTo,
@@ -169,7 +171,7 @@ const Overview = () => {
 
     const getTasks = () => {
         let user_id = JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id'];
-        axios.get(`http://localhost:6969/get_tasks/${user_id}`)
+        axios.get(`${IP_ADDR}/get_tasks/${user_id}`)
         .then(function (response) {
             setTaskList(response.data.data)
           })
@@ -183,7 +185,7 @@ const Overview = () => {
     }
 
     const getMajorOutputList = () => {
-        axios.get(`http://localhost:6969/get_major_outputs`)
+        axios.get(`${IP_ADDR}/get_major_outputs`)
         .then(function (response) {
             setOutputList(response.data.data)
           })
@@ -197,7 +199,7 @@ const Overview = () => {
     }
 
     const getUsers = () => {
-        axios.get(`http://localhost:6969/get_users`)
+        axios.get(`${IP_ADDR}/get_users`)
         .then(function (response) {
             setMemberList(response.data.data)
           })
@@ -214,7 +216,7 @@ const Overview = () => {
         let temp = [...runningTimerList];
         let index = runningTimerList.indexOf(id);
         if (index == -1) {
-            axios.post('http://localhost:6969/start_timer', {output_id: id})
+            axios.post(`${IP_ADDR}/start_timer`, {output_id: id})
             .then(function (response) {
                 if (response.data.status == true) {
                     temp.push(id)
@@ -227,7 +229,7 @@ const Overview = () => {
                 console.log(error);
             });
         } else {
-            axios.post('http://localhost:6969/stop_timer', {output_id: id})
+            axios.post('${IP_ADDR}/stop_timer', {output_id: id})
             .then(function (response) {
                 if (response.data.status == true) {
                     temp.splice(index, 1);
