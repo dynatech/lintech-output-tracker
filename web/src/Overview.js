@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
+import * as React from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -35,6 +36,9 @@ import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+
 import { KeyboardArrowUp } from "@mui/icons-material";
 import useScrollTrigger from "@mui/material/useScrollTrigger";
 import Chip from '@mui/material/Chip';
@@ -57,7 +61,41 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     children?: React.ReactNode;
     onClose: () => void;
 }
-const IP_ADDR = "http://192.168.150.108:6969";
+
+    interface TabPanelProps {
+        children?: React.ReactNode;
+        index: number;
+        value: number;
+    }
+  
+    function TabPanel(props: TabPanelProps) {
+        const { children, value, index, ...other } = props;
+    
+        return (
+            <div
+                role="tabpanel"
+                hidden={value !== index}
+                id={`simple-tabpanel-${index}`}
+                aria-labelledby={`simple-tab-${index}`}
+                {...other}
+            >
+                {value === index && (
+                <Box sx={{ p: 3 }}>
+                    <Typography>{children}</Typography>
+                </Box>
+                )}
+            </div>
+        );
+    }
+
+    function a11yProps(index: number) {
+        return {
+          id: `simple-tab-${index}`,
+          'aria-controls': `simple-tabpanel-${index}`,
+        };
+    }
+
+const IP_ADDR = "http://localhost:6969";
 
 function BootstrapDialogTitle(props: DialogTitleProps) {
     const { children, onClose, ...other } = props;
@@ -96,6 +134,9 @@ const Overview = () => {
     const [outputDetails, setOutputDetails] = useState('');
     const [outputNotes, setOutputNotes] = useState('');
     const [runningTimerList, setRunningTimerList] = useState([]);
+
+    const [isTL, setTL] = useState(true);
+    const [tabValue, setTabValue] = useState(0);
 
     const handleClickOpen = () => {
       setOpen(true);
@@ -143,7 +184,7 @@ const Overview = () => {
                     showConfirmButton: false 
                 }).then(()=> {
                     resetForm();
-                    getTasks();
+                    getTasks(tabValue);
                 });
             } else {
                 Swal.fire({
@@ -168,9 +209,9 @@ const Overview = () => {
         document.body.scrollTo({ top: 0, behavior: "smooth" });
     }, []);
 
-    const getTasks = () => {
+    const getTasks = (category) => {
         let user_id = JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id'];
-        axios.get(`${IP_ADDR}/get_tasks/${user_id}`)
+        axios.get(`${IP_ADDR}/get_tasks/${user_id}/${category}`)
         .then(function (response) {
             let origin_res = response.data.data;
             origin_res.forEach((element, index) => {
@@ -257,7 +298,7 @@ const Overview = () => {
                 if (response.data.status == true) {
                     temp.splice(index, 1);
                     setRunningTimerList(temp);
-                    getTasks();
+                    getTasks(tabValue);
                 } else {
                     
                 }
@@ -294,7 +335,7 @@ const Overview = () => {
                         },
                         showConfirmButton: false 
                     }).then(()=> {
-                        getTasks();
+                        getTasks(tabValue);
                     });
                 } else {
                     
@@ -307,13 +348,13 @@ const Overview = () => {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: 'Nag ru-run timer mo tapos mag ssubmit ka? Boba ka?',
+                text: 'Nag ru-run timer mo tapos mag ssubmit ka? Boba?',
             });
         }
     }
 
     useEffect(()=> {
-        getTasks();
+        getTasks(tabValue);
         getMajorOutputList();
         getUsers();
     }, []);
@@ -326,6 +367,11 @@ const Overview = () => {
         var rminutes = Math.round(minutes);
         return `${rhours} hour${rhours > 1 ? 's': ''} and ${rminutes} minutes`;
     }
+
+    const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+        setTabValue(newValue);
+        getTasks(newValue)
+    };
 
     return (
         <Fragment>
@@ -357,6 +403,19 @@ const Overview = () => {
                         </ButtonGroup>
                     </Grid>
                     <Grid item xs={12}>
+                        <Grid item xs={12} sx={{pt:2, pr:2, pl:2}}>
+                            <Tabs value={tabValue} onChange={handleChangeTab} aria-label="basic tabs example">
+                                <Tab label="On-going" {...a11yProps(0)} />
+                                <Tab label="Submitted" {...a11yProps(1)} />
+                                <Tab label="Finished" {...a11yProps(2)} />
+                                {
+                                    isTL && <Tab sx={{color: 'green'}} label="Members Tasks" {...a11yProps(3)} />
+                                }
+                                {
+                                    isTL && <Tab sx={{color: 'green'}} label="Submitted by Members" {...a11yProps(3)} />
+                                }
+                            </Tabs>
+                        </Grid>
                         <Box sx={{ p: 2, mt: 2, mb: 2, 
                             boxShadow: 1, 
                             borderRadius: 2,
@@ -403,7 +462,7 @@ const Overview = () => {
                                                         </Typography>
                                                 }
                                             </Typography>
-                                                <Typography variant="overline" sx={{fontWeight: 500}}>Nakaka {timeConvert(element.total_time_spent)} ka na.</Typography>
+                                            <Typography variant="overline" sx={{fontWeight: 500}}>Nakaka {timeConvert(element.total_time_spent)} ka na. 🥬 {element.total_time_spent > 480 && 'Aba, bilisan mo mag work.'} </Typography>
                                             </AccordionDetails>
                                         </Accordion>
                                     ))

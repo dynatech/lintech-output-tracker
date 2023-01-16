@@ -7,10 +7,17 @@ const moment = require("moment");
 const cors = require("cors");
 const port = 6969;
 
+// const local = mysql.createPool({
+//     host: "192.168.150.112",
+//     user: "si",
+//     password: "softwareinfra",
+//     database: "commons_db"
+// });
+
 const local = mysql.createPool({
-    host: "192.168.150.112",
-    user: "si",
-    password: "softwareinfra",
+    host: "127.0.0.1",
+    user: "root",
+    password: "senslope",
     database: "commons_db"
 });
 
@@ -95,7 +102,6 @@ app.get("/get_task_activity/:output_id", (req, res) => {
 
 app.post("/submit_task", (req,res) => {
     let update_ts = `UPDATE commons_db.log_frame_outputs SET status = 1 where output_id = '${req.body.output_id}'`;
-    console.log(update_ts)
     local.query(update_ts, (err, result) => {
         res.send({
             status: true,
@@ -104,11 +110,10 @@ app.post("/submit_task", (req,res) => {
     });
 });
 
-app.get("/get_tasks/:user_id", (req, res) => {
+app.get("/get_tasks/:user_id/:category", (req, res) => {
     let query = "SELECT * FROM commons_db.log_frame " + 
-                `INNER JOIN log_frame_outputs ON log_frame.id = log_frame_outputs.log_frame_id where log_frame_outputs.user_id = ${req.params.user_id} and log_frame_outputs.status = 0;`;
+                `INNER JOIN log_frame_outputs ON log_frame.id = log_frame_outputs.log_frame_id where log_frame_outputs.user_id = ${req.params.user_id} and log_frame_outputs.status = ${req.params.category};`;
     local.query(query, (err, result) => {
-        console.log(err)
         let return_value = [];
         result.forEach(element => {
             let temp = {
