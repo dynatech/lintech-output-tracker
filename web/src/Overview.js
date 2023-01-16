@@ -41,6 +41,7 @@ import Chip from '@mui/material/Chip';
 import Autocomplete from '@mui/material/Autocomplete';
 import axios from 'axios';
 import Swal from 'sweetalert2'
+import moment from 'moment';
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialogContent-root': {
@@ -171,7 +172,31 @@ const Overview = () => {
         let user_id = JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id'];
         axios.get(`${IP_ADDR}/get_tasks/${user_id}`)
         .then(function (response) {
-            setTaskList(response.data.data)
+            let origin_res = response.data.data;
+            origin_res.forEach((element, index) => {
+                axios.get(`${IP_ADDR}/get_task_activity/${element.output_id}`)
+                .then(function (res) {
+                    let temp_total = 0;
+                    origin_res[index]['activity'] = res.data.data;
+                    res.data.data.forEach(element => {
+                        if (element.end_ts != null) {
+                            let difference = moment.duration(moment(element.end_ts).diff(moment(element.start_ts)));
+                            console.log(difference.asMinutes());
+                            temp_total += parseInt(difference.asMinutes())
+                        } else {
+                            let temp = [...runningTimerList];
+                            temp.push(element.output_id);
+                            setRunningTimerList(temp);
+                        }
+                    });
+                    origin_res[index]['total_time_spent'] = temp_total;
+                });
+            });
+            
+            setTimeout(()=> {
+                console.log(origin_res);
+                setTaskList(origin_res);
+            }, 1000)
           })
           .catch(function (error) {
             // handle error
@@ -227,11 +252,12 @@ const Overview = () => {
                 console.log(error);
             });
         } else {
-            axios.post('${IP_ADDR}/stop_timer', {output_id: id})
+            axios.post(`${IP_ADDR}/stop_timer`, {output_id: id})
             .then(function (response) {
                 if (response.data.status == true) {
                     temp.splice(index, 1);
-                    setRunningTimerList(temp)
+                    setRunningTimerList(temp);
+                    getTasks();
                 } else {
                     
                 }
@@ -254,6 +280,15 @@ const Overview = () => {
         getMajorOutputList();
         getUsers();
     }, []);
+
+    const timeConvert = (n) => {
+        var num = n;
+        var hours = (num / 60);
+        var rhours = Math.floor(hours);
+        var minutes = (hours - rhours) * 60;
+        var rminutes = Math.round(minutes);
+        return `${rhours} hour${rhours > 1 ? 's': ''} and ${rminutes} minutes`;
+    }
 
     return (
         <Fragment>
@@ -331,6 +366,7 @@ const Overview = () => {
                                                         </Typography>
                                                 }
                                             </Typography>
+                                                <Typography variant="overline" sx={{fontWeight: 500}}>Nakaka {timeConvert(element.total_time_spent)} ka na.</Typography>
                                             </AccordionDetails>
                                         </Accordion>
                                     ))

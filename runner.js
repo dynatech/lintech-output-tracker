@@ -60,7 +60,7 @@ app.post("/save_task", (req, res) => {
 app.post("/start_timer", (req, res) => {
     let query = `SELECT * FROM commons_db.log_frame_output_activity where output_id = "${req.body.output_id}" order by id desc limit 1;`
     local.query(query, (err, result) => {
-        let insert_activity_query = `INSERT INTO commons_db.log_frame_output_activity VALUES(0, ${req.body.output_id}, '${moment().format("YYYY-MM-DD HH:ss:mm")}', null);`;
+        let insert_activity_query = `INSERT INTO commons_db.log_frame_output_activity VALUES(0, ${req.body.output_id}, '${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}', null);`;
         local.query(insert_activity_query, (err, result) => {
             res.send({
                 status: true
@@ -72,12 +72,26 @@ app.post("/start_timer", (req, res) => {
 app.post("/stop_timer", (req, res) => {
     let query = `SELECT * FROM commons_db.log_frame_output_activity where output_id = "${req.body.output_id}" order by id desc limit 1;`;
     local.query(query, (err, result) => {
-        let update_ts = `UPDATE commons_db.log_frame_output_activity SET end_ts = '${moment().format("YYYY-MM-DD HH:ss:mm")}' where id = '${result[0].id}'`;
+        let update_ts = `UPDATE commons_db.log_frame_output_activity SET end_ts = '${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}' where id = '${result[0].id}'`;
         local.query(update_ts, (err, result) => {
             res.send({
                 status: true
             })
         });
+    });
+});
+
+app.get("/get_task_activity/:output_id", (req, res) => {
+    let sub_query = `SELECT * FROM log_frame_output_activity WHERE output_id = ${req.params.output_id}`;
+    local.query(sub_query, (err, sub_res) => {
+        let activity = [];
+        sub_res.forEach(el => {
+            activity.push(el)
+        });
+        res.send({
+            status: true,
+            data: activity
+        })
     });
 });
 
@@ -88,15 +102,8 @@ app.get("/get_tasks/:user_id", (req, res) => {
         let return_value = [];
         result.forEach(element => {
             let temp = {
-                ...element,
-                activity: []
+                ...element
             };
-            let sub_query = `SELECT * FROM log_frame_output_activity WHERE output_id = ${element.output_id}`;
-            local.query(sub_query, (err, sub_res) => {
-                sub_res.forEach(el => {
-                    temp.activity.push(el)
-                });
-            });
             return_value.push(temp);
         });
         res.send({
