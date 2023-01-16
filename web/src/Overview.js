@@ -214,17 +214,38 @@ const Overview = () => {
         let temp = [...runningTimerList];
         let index = runningTimerList.indexOf(id);
         if (index == -1) {
-            temp.push(id)
-            setRunningTimerList(temp)
+            axios.post('http://localhost:6969/start_timer', {output_id: id})
+            .then(function (response) {
+                if (response.data.status == true) {
+                    temp.push(id)
+                    setRunningTimerList(temp)
+                } else {
+                    
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
         } else {
-            temp.splice(index, 1);
-            setRunningTimerList(temp)
+            axios.post('http://localhost:6969/stop_timer', {output_id: id})
+            .then(function (response) {
+                if (response.data.status == true) {
+                    temp.splice(index, 1);
+                    setRunningTimerList(temp)
+                } else {
+                    
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+
         }
     }
 
     const TimerButtons = ({task}) => {
         return (
-            <Button startIcon={<PlayCircleOutlineIcon/>} onClick={()=> toggleTimer(task)}>Start timer</Button>
+            <Button startIcon={<PlayCircleOutlineIcon/>} onClick={(e)=> {e.preventDefault(); toggleTimer(task);}}>Start timer</Button>
         )
     }
 

@@ -8,7 +8,7 @@ const cors = require("cors");
 const port = 6969;
 
 const local = mysql.createPool({
-    host: "localhost",
+    host: "127.0.0.1",
     user: "root",
     password: "senslope",
     database: "commons_db"
@@ -22,6 +22,8 @@ app.post("/login", (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
     local.query(`SELECT * FROM commons_db.user_accounts INNER JOIN users ON user_accounts.user_fk_id = users.user_id where username = '${username}' limit 1;`, (err, result) => {
+        // console.log(`SELECT * FROM commons_db.user_accounts INNER JOIN users ON user_accounts.user_fk_id = users.user_id where username = '${username}' limit 1;`)
+        console.log(err)
         result.forEach(element => {
             if (element.password == sha512(password)) {
                 res.send({
@@ -53,7 +55,30 @@ app.post("/save_task", (req, res) => {
             message: "Wow ha. Kala mo nag ttrabaho"
         });
     });
+});
 
+app.post("/start_timer", (req, res) => {
+    let query = `SELECT * FROM commons_db.log_frame_output_activity where output_id = "${req.body.output_id}" order by id desc limit 1;`
+    local.query(query, (err, result) => {
+        let insert_activity_query = `INSERT INTO commons_db.log_frame_output_activity VALUES(0, ${req.body.output_id}, '${moment().format("YYYY-MM-DD HH:ss:mm")}', null);`;
+        local.query(insert_activity_query, (err, result) => {
+            res.send({
+                status: true
+            })
+        });
+    });
+});
+
+app.post("/stop_timer", (req, res) => {
+    let query = `SELECT * FROM commons_db.log_frame_output_activity where output_id = "${req.body.output_id}" order by id desc limit 1;`;
+    local.query(query, (err, result) => {
+        let update_ts = `UPDATE commons_db.log_frame_output_activity SET end_ts = '${moment().format("YYYY-MM-DD HH:ss:mm")}' where id = '${result[0].id}'`;
+        local.query(update_ts, (err, result) => {
+            res.send({
+                status: true
+            })
+        });
+    });
 });
 
 app.get("/get_tasks/:user_id", (req, res) => {
