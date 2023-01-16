@@ -94,7 +94,8 @@ app.get("/get_task_activity/:output_id", (req, res) => {
 });
 
 app.post("/submit_task", (req,res) => {
-    let update_ts = `UPDATE commons_db.log_frame_output SET status = 1 where id = '${req.body.output_id}'`;
+    let update_ts = `UPDATE commons_db.log_frame_outputs SET status = 1 where id = '${req.body.output_id}'`;
+    console.log(update_ts)
     local.query(update_ts, (err, result) => {
         res.send({
             status: true,
