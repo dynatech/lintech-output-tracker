@@ -22,8 +22,6 @@ app.post("/login", (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
     local.query(`SELECT * FROM commons_db.user_accounts INNER JOIN users ON user_accounts.user_fk_id = users.user_id where username = '${username}' limit 1;`, (err, result) => {
-        // console.log(`SELECT * FROM commons_db.user_accounts INNER JOIN users ON user_accounts.user_fk_id = users.user_id where username = '${username}' limit 1;`)
-        console.log(err)
         result.forEach(element => {
             if (element.password == sha512(password)) {
                 res.send({
@@ -95,10 +93,21 @@ app.get("/get_task_activity/:output_id", (req, res) => {
     });
 });
 
+app.post("/submit_task", (req,res) => {
+    let update_ts = `UPDATE commons_db.log_frame_output SET status = 1 where id = '${req.body.output_id}'`;
+    local.query(update_ts, (err, result) => {
+        res.send({
+            status: true,
+            message: "Wow ha. Nag submit ka? Kala mo talaga nag ttrabaho."
+        })
+    });
+});
+
 app.get("/get_tasks/:user_id", (req, res) => {
     let query = "SELECT * FROM commons_db.log_frame " + 
-                `INNER JOIN log_frame_outputs ON log_frame.id = log_frame_outputs.log_frame_id where log_frame_outputs.user_id = ${req.params.user_id};`;
+                `INNER JOIN log_frame_outputs ON log_frame.id = log_frame_outputs.log_frame_id where log_frame_outputs.user_id = ${req.params.user_id} and log_frame_outputs.status = 0;`;
     local.query(query, (err, result) => {
+        console.log(err)
         let return_value = [];
         result.forEach(element => {
             let temp = {

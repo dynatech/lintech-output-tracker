@@ -269,10 +269,47 @@ const Overview = () => {
         }
     }
 
-    const TimerButtons = ({task}) => {
-        return (
-            <Button startIcon={<PlayCircleOutlineIcon/>} onClick={(e)=> {e.preventDefault(); toggleTimer(task);}}>Start timer</Button>
-        )
+    const submitTask = (element) => {
+        if (runningTimerList.indexOf(element.output_id) == -1) {
+            axios.post(`${IP_ADDR}/submit_task`, {output_id: element.output_id})
+            .then(function (response) {
+                if (response.data.status == true) {
+                    let timerInterval;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Task Submitted!',
+                        text: response.data.message,
+                        footer: '<div />',
+                        timer: 2000,
+                        timerProgressBar: true,
+                        didOpen: () => {
+                            Swal.showLoading()
+                            const b = Swal.getHtmlContainer().querySelector('b')
+                            timerInterval = setInterval(() => {
+                            b.textContent = Swal.getTimerLeft()
+                            }, 100)
+                        },
+                        willClose: () => {
+                            clearInterval(timerInterval)
+                        },
+                        showConfirmButton: false 
+                    }).then(()=> {
+                        getTasks();
+                    });
+                } else {
+                    
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Nag ru-run timer mo tapos mag ssubmit ka? Boba ka?',
+            });
+        }
     }
 
     useEffect(()=> {
@@ -349,7 +386,7 @@ const Overview = () => {
                                                                 </Button>
                                                             </Grid>
                                                             <Grid item xs={4}>
-                                                                <Button startIcon={<CheckCircleOutlineIcon/>} color="success">Mark as done</Button>
+                                                                <Button startIcon={<CheckCircleOutlineIcon/>} color="success" onClick={()=> submitTask(element)}>Submit Task</Button>
                                                             </Grid>
                                                         </Grid>
                                                     </Grid>
