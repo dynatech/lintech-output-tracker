@@ -12,12 +12,53 @@ import TextField from '@mui/material/TextField';
 import LintechPicture from './assets/1673710275502.jpeg';
 import axios from 'axios';
 import Swal from 'sweetalert2'
+import { RFC_2822 } from 'moment';
 
 const IP_ADDR = "http://localhost:6969";
 const Login = (props) => {
 
     const [username, setUsername] = useState(null);
     const [password, setPassword] = useState(null);
+    const [state, setState] = useState(1);
+
+    var a = 0;
+
+    function mouseOver(){
+        if ((username == null && password == null) && a == 0){
+            buttonMoveLeft();
+            a=1;
+            return false;
+        } 
+        if ((username == null && password == null) && a == 1){
+            buttonMoveRight();
+            a=2;
+            return false;
+        } 
+        if ((username == null && password == null) && a == 2){
+            buttonMoveLeft();
+            a=1;
+            return false;
+        }
+        else{
+            return false;
+        }
+    }
+
+    function buttonMoveLeft(){
+            const button = document.getElementById('runaway-btn');
+            button.style.transform = 'translateX(120%)';
+    };
+
+    function buttonMoveRight(){
+        const button = document.getElementById('runaway-btn');
+        button.style.transform = 'translateX(0%)';
+};
+
+    var mystyle = {
+        left:
+            state === 1 ? "0px" : state === 2 ? "200px" : state === 3 ? "450px" : "",
+        position: password === null || username === null
+    }
 
     const handleLogin = () => {
         axios.post(`${IP_ADDR}/login`, {
@@ -120,7 +161,16 @@ const Login = (props) => {
                                     </Grid>
                                 </CardContent>
                                 <CardActions sx={{justifyContent: "flex-end", mr: 3}}>
-                                    <Button variant="contained" size="medium" onClick={handleLogin}>Login</Button>
+                                        <div style={{width: '100%', position: 'relative', height: '60px', display: 'block'}}>
+                                            <Button id='runaway-btn'
+                                                    variant="contained" 
+                                                    size="medium" 
+                                                    onClick={handleLogin} 
+                                                    style={mystyle}
+                                                    onMouseOver={mouseOver}>
+                                                    Login
+                                            </Button>
+                                        </div>
                                 </CardActions>
                             </Card>
                     </Grid>

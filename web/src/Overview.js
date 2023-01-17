@@ -346,7 +346,7 @@ const Overview = () => {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: 'Nag ru-run timer mo tapos mag ssubmit ka? Boba?',
+                text: 'Nag ru-run timer mo tapos mag ssubmit ka? Boba ka tea?',
             });
         }
     }
@@ -430,7 +430,13 @@ const Overview = () => {
                                     currentTaskList.map((element)=> (
                                         <Accordion>
                                             <AccordionSummary
-                                            expandIcon={<ExpandMoreIcon />}
+                                            sx={{
+                                                pointerEvents: "none"
+                                            }}
+                                            expandIcon={<ExpandMoreIcon 
+                                            sx={{
+                                                pointerEvents: "auto"
+                                            }}/>}
                                             aria-controls="panel1a-content"
                                             id="panel1a-header"
                                             >
@@ -438,6 +444,25 @@ const Overview = () => {
                                                     <Grid item xs={7}>
                                                         <Typography style={{fontWeight: 500}}>{element.major_output}</Typography>
                                                         <Typography variant="overline">{element.actual_outputs}</Typography>
+                                                    </Grid>
+                                                    <Grid item xs={5}>
+                                                    <Typography variant="h6" sx={{fontWeight: 500}}>Nakaka {timeConvert(element.total_time_spent)} ka na. 🥬 {element.total_time_spent > 480 && 'Aba, bilisan mo mag work.'} </Typography>
+                                                    </Grid>
+                                                </Grid>
+                                            </AccordionSummary>
+                                            <AccordionDetails>
+                                                <Grid container>
+                                                    <Grid item xs={7}>
+                                                        <Typography>
+                                                            {
+                                                                element.details != "" && element.details != null ? 
+                                                                    element.details
+                                                                :
+                                                                    <Typography>
+                                                                        <Box sx={{ fontStyle: 'italic', m: 1 }}>Wala kang nilagay na details. Kasalanan mo kung bakit ka nalilito kung ano tong task na to.</Box>
+                                                                    </Typography>
+                                                            }
+                                                        </Typography>
                                                     </Grid>
                                                     <Grid item xs={5}>
                                                         <Grid container sx={{textAlign: 'right', pt: 1}} justifyContent="flex-end">
@@ -454,19 +479,6 @@ const Overview = () => {
                                                         </Grid>
                                                     </Grid>
                                                 </Grid>
-                                            </AccordionSummary>
-                                            <AccordionDetails>
-                                            <Typography>
-                                                {
-                                                    element.details != "" && element.details != null ? 
-                                                        element.details
-                                                    :
-                                                        <Typography>
-                                                            <Box sx={{ fontStyle: 'italic', m: 1 }}>Wala kang nilagay na details. Kasalanan mo kung bakit ka nalilito kung ano tong task na to.</Box>
-                                                        </Typography>
-                                                }
-                                            </Typography>
-                                            <Typography variant="overline" sx={{fontWeight: 500}}>Nakaka {timeConvert(element.total_time_spent)} ka na. 🥬 {element.total_time_spent > 480 && 'Aba, bilisan mo mag work.'} </Typography>
                                             </AccordionDetails>
                                         </Accordion>
                                     ))
