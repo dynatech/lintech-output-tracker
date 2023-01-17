@@ -7,19 +7,19 @@ const moment = require("moment");
 const cors = require("cors");
 const port = 6969;
 
-// const local = mysql.createPool({
-//     host: "192.168.150.112",
-//     user: "si",
-//     password: "softwareinfra",
-//     database: "commons_db"
-// });
-
 const local = mysql.createPool({
-    host: "127.0.0.1",
-    user: "root",
-    password: "senslope",
+    host: "192.168.150.112",
+    user: "si",
+    password: "softwareinfra",
     database: "commons_db"
 });
+
+// const local = mysql.createPool({
+//     host: "127.0.0.1",
+//     user: "root",
+//     password: "senslope",
+//     database: "commons_db"
+// });
 
 app.use(cors());
 app.use(express.json());
@@ -106,6 +106,16 @@ app.post("/submit_task", (req,res) => {
         res.send({
             status: true,
             message: "Wow ha. Nag submit ka? Kala mo talaga nag ttrabaho."
+        })
+    });
+});
+
+app.post("/mark_as_done", (req,res) => {
+    let update_ts = `UPDATE commons_db.log_frame_outputs SET status = 2 where output_id = '${req.body.output_id}'`;
+    local.query(update_ts, (err, result) => {
+        res.send({
+            status: true,
+            message: "Naks naman. Achiever!"
         })
     });
 });

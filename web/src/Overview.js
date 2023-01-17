@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState, useRef } from 'react';
 import * as React from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
@@ -45,6 +45,7 @@ import Chip from '@mui/material/Chip';
 import Autocomplete from '@mui/material/Autocomplete';
 import axios from 'axios';
 import Swal from 'sweetalert2'
+import Skeleton from '@mui/material/Skeleton';
 import moment from 'moment';
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
@@ -95,7 +96,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
         };
     }
 
-const IP_ADDR = "http://localhost:6969";
+const IP_ADDR = "http://192.168.150.108:6969";
 
 function BootstrapDialogTitle(props: DialogTitleProps) {
     const { children, onClose, ...other } = props;
@@ -135,8 +136,11 @@ const Overview = () => {
     const [outputNotes, setOutputNotes] = useState('');
     const [runningTimerList, setRunningTimerList] = useState([]);
 
-    const [isTL, setTL] = useState(true);
+    const [isTL, setTL] = useState(false);
     const [tabValue, setTabValue] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const tabValueRef = useRef(0);
 
     const handleClickOpen = () => {
       setOpen(true);
@@ -210,6 +214,7 @@ const Overview = () => {
     }, []);
 
     const getTasks = (category) => {
+        console.log(category)
         let user_id = JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id'];
         axios.get(`${IP_ADDR}/get_tasks/${user_id}/${category}`)
         .then(function (response) {
@@ -233,9 +238,13 @@ const Overview = () => {
                 });
             });
             
+
             setTimeout(()=> {
+                setIsLoading(false);
                 setTaskList(origin_res);
             }, 1000)
+            
+
           })
           .catch(function (error) {
             // handle error
@@ -309,14 +318,55 @@ const Overview = () => {
     }
 
     const submitTask = (element) => {
-        if (runningTimerList.indexOf(element.output_id) == -1) {
-            axios.post(`${IP_ADDR}/submit_task`, {output_id: element.output_id})
+        if (tabValue === 0) {
+            if (runningTimerList.indexOf(element.output_id) == -1) {
+                axios.post(`${IP_ADDR}/submit_task`, {output_id: element.output_id})
+                .then(function (response) {
+                    if (response.data.status == true) {
+                        let timerInterval;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Task Submitted!',
+                            text: response.data.message,
+                            footer: '<div />',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            didOpen: () => {
+                                Swal.showLoading()
+                                const b = Swal.getHtmlContainer().querySelector('b')
+                                timerInterval = setInterval(() => {
+                                b.textContent = Swal.getTimerLeft()
+                                }, 100)
+                            },
+                            willClose: () => {
+                                clearInterval(timerInterval)
+                            },
+                            showConfirmButton: false 
+                        }).then(()=> {
+                            getTasks(tabValue);
+                        });
+                    } else {
+                        
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Nag ru-run timer mo tapos mag ssubmit ka? Boba?',
+                });
+            }
+        } else if (tabValue === 1) {
+            axios.post(`${IP_ADDR}/mark_as_done`, {output_id: element.output_id})
             .then(function (response) {
                 if (response.data.status == true) {
                     let timerInterval;
                     Swal.fire({
                         icon: 'success',
-                        title: 'Task Submitted!',
+                        title: 'Task Done!',
                         text: response.data.message,
                         footer: '<div />',
                         timer: 2000,
@@ -336,19 +386,20 @@ const Overview = () => {
                         getTasks(tabValue);
                     });
                 } else {
-                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'May error. Di ko sasabihin sayo.',
+                    });
                 }
             })
             .catch(function (error) {
                 console.log(error);
             });
         } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Nag ru-run timer mo tapos mag ssubmit ka? Boba?',
-            });
+            // Mark as archive
         }
+
     }
 
     useEffect(()=> {
@@ -359,7 +410,7 @@ const Overview = () => {
 
     useEffect(()=> {
         setInterval(()=> {
-            getTasks(tabValue)
+            getTasks(tabValueRef.current)
         }, 10000);
     }, []);
 
@@ -373,7 +424,9 @@ const Overview = () => {
     }
 
     const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+        setIsLoading(true);
         setTabValue(newValue);
+        tabValueRef.current = newValue;
         getTasks(newValue)
     };
 
@@ -426,8 +479,14 @@ const Overview = () => {
                             backgroundColor: 'grey',
                             minHeight: 400}}>
                             {
-                                currentTaskList.length != 0 ?
-                                    currentTaskList.map((element)=> (
+                                currentTaskList.length != 0 ? 
+                                     isLoading == true ? 
+                                        <Skeleton animation="wave" 
+                                            variant="rectangular"
+                                            height={365}
+                                            width="100%" />
+                                    :
+                                        currentTaskList.map((element)=> (
                                         <Accordion>
                                             <AccordionSummary
                                             expandIcon={<ExpandMoreIcon />}
@@ -442,14 +501,17 @@ const Overview = () => {
                                                     <Grid item xs={5}>
                                                         <Grid container sx={{textAlign: 'right', pt: 1}} justifyContent="flex-end">
                                                             <Grid item xs={4}>
-                                                                <Button color={runningTimerList.indexOf(element.output_id) == -1 ? "primary" : "error"} startIcon={runningTimerList.indexOf(element.output_id) == -1 ? <PlayCircleOutlineIcon/> : <PauseCircleOutlineIcon />} onClick={()=> toggleTimer(element.output_id)}>
-                                                                    {
-                                                                        runningTimerList.indexOf(element.output_id) == -1 ? "Start Timer" : "Stop Timer"
-                                                                    }
-                                                                </Button>
+                                                                {
+                                                                    tabValue == 0 && 
+                                                                        <Button color={runningTimerList.indexOf(element.output_id) == -1 ? "primary" : "error"} startIcon={runningTimerList.indexOf(element.output_id) == -1 ? <PlayCircleOutlineIcon/> : <PauseCircleOutlineIcon />} onClick={()=> toggleTimer(element.output_id)}>
+                                                                            {
+                                                                                runningTimerList.indexOf(element.output_id) == -1 ? "Start Timer" : "Stop Timer"
+                                                                            }
+                                                                        </Button>
+                                                                }
                                                             </Grid>
                                                             <Grid item xs={4}>
-                                                                <Button startIcon={<CheckCircleOutlineIcon/>} color="success" onClick={()=> submitTask(element)}>Submit Task</Button>
+                                                                <Button startIcon={<CheckCircleOutlineIcon/>} color="success" onClick={()=> submitTask(element)}>{tabValue == 0 ? 'Submit task' : tabValue == 1 ?  'Mark as Done' : 'Archive task'}</Button>
                                                             </Grid>
                                                         </Grid>
                                                     </Grid>
@@ -471,6 +533,7 @@ const Overview = () => {
                                         </Accordion>
                                     ))
                                 :
+
                                     <Typography sx={{p: 2, color: 'white', textAlign: 'center'}}>
                                         No task(s) available 🥬 
                                     </Typography>
