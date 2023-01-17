@@ -222,7 +222,6 @@ const Overview = () => {
                     res.data.data.forEach(element => {
                         if (element.end_ts != null) {
                             let difference = moment.duration(moment(element.end_ts).diff(moment(element.start_ts)));
-                            console.log(difference.asMinutes());
                             temp_total += parseInt(difference.asMinutes())
                         } else {
                             let temp = [...runningTimerList];
@@ -235,7 +234,6 @@ const Overview = () => {
             });
             
             setTimeout(()=> {
-                console.log(origin_res);
                 setTaskList(origin_res);
             }, 1000)
           })
@@ -357,6 +355,12 @@ const Overview = () => {
         getTasks(tabValue);
         getMajorOutputList();
         getUsers();
+    }, []);
+
+    useEffect(()=> {
+        setInterval(()=> {
+            getTasks(tabValue)
+        }, 10000);
     }, []);
 
     const timeConvert = (n) => {
