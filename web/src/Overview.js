@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useState, useRef } from 'react';
+import { Fragment, useCallback, useEffect, useState, useRef, Dimensions } from 'react';
 import * as React from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
@@ -47,6 +47,9 @@ import axios from 'axios';
 import Swal from 'sweetalert2'
 import Skeleton from '@mui/material/Skeleton';
 import moment from 'moment';
+import Confetti from 'react-confetti'
+
+import { useStopwatch } from "react-use-stopwatch";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialogContent-root': {
@@ -141,6 +144,11 @@ const Overview = () => {
     const [isLoading, setIsLoading] = useState(false);
     
     const tabValueRef = useRef(0);
+    const [{ time, format }, start, stop, reset] = useStopwatch();
+    // const { width, height } = useWindowSize();
+    const width =  window.innerWidth;
+    const height = window.innerHeight;
+    const [showSubmittedConffeti, setShowSubmittedConffeti] = useState(false);
 
     const handleClickOpen = () => {
       setOpen(true);
@@ -287,6 +295,7 @@ const Overview = () => {
         let temp = [...runningTimerList];
         let index = runningTimerList.indexOf(id);
         if (index == -1) {
+            start();
             axios.post(`${IP_ADDR}/start_timer`, {output_id: id})
             .then(function (response) {
                 if (response.data.status == true) {
@@ -300,6 +309,7 @@ const Overview = () => {
                 console.log(error);
             });
         } else {
+            stop();
             axios.post(`${IP_ADDR}/stop_timer`, {output_id: id})
             .then(function (response) {
                 if (response.data.status == true) {
@@ -320,9 +330,11 @@ const Overview = () => {
     const submitTask = (element) => {
         if (tabValue === 0) {
             if (runningTimerList.indexOf(element.output_id) == -1) {
-                axios.post(`${IP_ADDR}/submit_task`, {output_id: element.output_id})
+                console.log(element)
+                axios.post(`${IP_ADDR}/submit_task`, {output_id: element.output_id, user_id: element.user_id, major_output: element.major_output, details: element.details})
                 .then(function (response) {
                     if (response.data.status == true) {
+                        setShowSubmittedConffeti(true);
                         let timerInterval;
                         Swal.fire({
                             icon: 'success',
@@ -344,6 +356,9 @@ const Overview = () => {
                             showConfirmButton: false 
                         }).then(()=> {
                             getTasks(tabValue);
+                            setTimeout(()=> {
+                                setShowSubmittedConffeti(false);
+                            }, [3000])
                         });
                     } else {
                         
@@ -505,7 +520,7 @@ const Overview = () => {
                                                                     tabValue == 0 && 
                                                                         <Button color={runningTimerList.indexOf(element.output_id) == -1 ? "primary" : "error"} startIcon={runningTimerList.indexOf(element.output_id) == -1 ? <PlayCircleOutlineIcon/> : <PauseCircleOutlineIcon />} onClick={()=> toggleTimer(element.output_id)}>
                                                                             {
-                                                                                runningTimerList.indexOf(element.output_id) == -1 ? "Start Timer" : "Stop Timer"
+                                                                                runningTimerList.indexOf(element.output_id) == -1 ? "Start Timer" : format
                                                                             }
                                                                         </Button>
                                                                 }
@@ -673,6 +688,14 @@ const Overview = () => {
                 </Button>
                 </DialogActions>
             </BootstrapDialog>
+            {
+                showSubmittedConffeti && 
+                <Confetti
+                    width={width}
+                    height={height}
+                />
+            }
+
         </Fragment>
     )
 }

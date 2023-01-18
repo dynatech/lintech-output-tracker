@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const mysql = require("mysql2");
 const moment = require("moment");
 const cors = require("cors");
+const fetch = require("node-fetch");
 const port = 6969;
 
 const local = mysql.createPool({
@@ -107,6 +108,11 @@ app.post("/submit_task", (req,res) => {
             status: true,
             message: "Wow ha. Nag submit ka? Kala mo talaga nag ttrabaho."
         })
+        let notify = `SELECT first_name, last_name FROM commons_db.users where user_id = '${req.body.user_id}'`;
+        local.query(notify, (err, result) => {
+            // webhook
+            console.log(err, result)
+        });
     });
 });
 
@@ -168,6 +174,28 @@ app.get("/get_users", (req, res) => {
         });
     });
 });
+
+function webhook(message) {
+    console.log("TRIGGER THE HOOK")
+    const webhookURL = 'https://chat.googleapis.com/v1/spaces/AAAAYxLNg1A/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=j1WQDuzXXv7zoiNUkhcqZdEkVw8tFnn_eUNbEzWjDqQ%3D';
+  
+    const data = JSON.stringify({
+      'text': message,
+    });
+    let resp;
+
+    fetch(webhookURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: data,
+    }).then((response) => {
+      resp = response;
+    });
+    return resp;
+  }
+
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

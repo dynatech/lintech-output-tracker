@@ -16,8 +16,8 @@
     "js-sha512": "^0.8.0",
     "moment": "^2.29.4",
     "mysql2": "^3.0.0-rc.1",
+    "node-fetch": "^2.6.8",
     "nodemon": "^2.0.20"
   },
-  "devDependencies": {},
   "description": ""
 }
