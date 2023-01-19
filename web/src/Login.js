@@ -11,13 +11,34 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import LintechPicture from './assets/1673710275502.jpeg';
 import axios from 'axios';
-import Swal from 'sweetalert2'
-
+import Swal from 'sweetalert2';
+import { motion, useAnimation } from "framer-motion"
+import { useSnackbar } from 'notistack';
+  
 const IP_ADDR = "http://192.168.150.108:6969";
 const Login = (props) => {
 
-    const [username, setUsername] = useState(null);
-    const [password, setPassword] = useState(null);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [isAnimationPlaying, setIsAnimationPlaying] = useState(false);
+    const { enqueueSnackbar } = useSnackbar();
+
+    const handleClick = () => {
+        enqueueSnackbar('Huwag bobito, kailangan nang complete credentials!');
+      };
+    
+    const divAnimationControls = useAnimation();
+
+	const divAnimationVariants = {
+	    anim: {
+	        x: 600,
+		    transition: {
+	            type: "spring",
+                stiffness: 35
+	        },
+            rotate: [0, -200]
+	    }
+	}
 
     const handleLogin = () => {
         axios.post(`${IP_ADDR}/login`, {
@@ -70,7 +91,7 @@ const Login = (props) => {
                 <CssBaseline />
                 <Container maxWidth="md">
                     <Grid container justifyContent="center" alignItems="center">
-                            <Card sx={{ height: '75vh', width: '75vh', marginTop: '10%', boxShadow: 10, backgroundColor: '#cbcaca', p: 2}}>
+                            <Card sx={{ height: '75vh', width: '75vh', marginTop: '10%', boxShadow: 10, backgroundColor: '#fdfdfd', p: 2}}>
                                 <CardMedia
                                     sx={{ height: '35vh'}}
                                     image={LintechPicture}
@@ -119,8 +140,31 @@ const Login = (props) => {
                                         </Grid>
                                     </Grid>
                                 </CardContent>
-                                <CardActions sx={{justifyContent: "flex-end", mr: 3}}>
-                                    <Button variant="contained" size="medium" onClick={handleLogin}>Login</Button>
+                                <CardActions>
+                                    <Grid container sx={{justifyContent: 'center'}}>
+                                    { username === "" || password === "" ? (
+                                            <motion.div
+                                                animate={divAnimationControls}
+                                                onHoverStart={() => {
+                                                    if (!isAnimationPlaying) {
+                                                        setIsAnimationPlaying(true)
+                                                        handleClick()
+                                                        divAnimationControls.start(divAnimationVariants.anim)
+                                                        }
+                                                    else {
+                                                        setIsAnimationPlaying(false)
+                                                        handleClick()
+                                                        divAnimationControls.start(divAnimationVariants.anim)
+                                                    }
+                                                    }}>
+                                                        <Button variant="contained" size="medium">Login</Button>
+                                            </motion.div>
+                                        
+                                        ) : (
+                                                <Button variant="contained" size="medium" onClick={handleLogin}>Login</Button>
+                                            )
+                                    }
+                                    </Grid>
                                 </CardActions>
                             </Card>
                     </Grid>
