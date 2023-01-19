@@ -27,7 +27,7 @@ const Login = (props) => {
 
     const handleClick = () => {
         enqueueSnackbar('Huwag bobito, kailangan nang complete credentials!');
-      };
+    };
     
     const divAnimationControls = useAnimation();
 
@@ -170,6 +170,18 @@ const Login = (props) => {
                                     { username === "" || password === "" ? (
                                             <motion.div
                                                 animate={divAnimationControls}
+                                                onFocus={()=> {
+                                                    enqueueSnackbar('Aba! Gumamit pa ng tab. kala mo talaga di ko alam.');
+                                                    if (!isAnimationPlaying) {
+                                                        setIsAnimationPlaying(true)
+                                                        divAnimationControls.start(divAnimationVariants.anim)
+                                                        }
+                                                    else {
+                                                        setIsAnimationPlaying(false)
+                                                        divAnimationControls.start(divAnimationVariants.anim)
+                                                    }
+                                                    setIsHidden(true);
+                                                }}
                                                 onHoverStart={() => {
                                                     if (!isAnimationPlaying) {
                                                         setIsAnimationPlaying(true)
@@ -183,7 +195,7 @@ const Login = (props) => {
                                                     }
                                                     setIsHidden(true);
                                                     }}>
-                                                        <Button variant="contained" size="medium">Login</Button>
+                                                <Button variant="contained" size="medium">Login</Button>
                                             </motion.div>
                                         
                                         ) : (
