@@ -100,7 +100,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
         };
     }
 
-const IP_ADDR = "http://localhost:6969";
+const IP_ADDR = "http://192.168.150.108:6969";
 
 function BootstrapDialogTitle(props: DialogTitleProps) {
     const { children, onClose, ...other } = props;
