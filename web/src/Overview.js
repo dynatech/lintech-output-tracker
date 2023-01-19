@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 import Fab from '@mui/material/Fab';
 import Zoom from '@mui/material/Zoom';
@@ -99,7 +100,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
         };
     }
 
-const IP_ADDR = "http://192.168.150.108:6969";
+const IP_ADDR = "http://localhost:6969";
 
 function BootstrapDialogTitle(props: DialogTitleProps) {
     const { children, onClose, ...other } = props;
@@ -131,6 +132,7 @@ const Overview = () => {
     const [majorOutputList, setOutputList] = useState([]);
     const [currentTaskList, setTaskList] = useState([]);
     const [memberList, setMemberList] = useState([]);
+    const [conffettiOpacity, setConffettiOpacity] = useState(1);
     
     const [selectedMajorOutput, setSelectedMajorOutput] = useState(null);
     const [selectedMajorOutputValue, setSelectedMajorOutputValue] = useState('');
@@ -142,6 +144,7 @@ const Overview = () => {
     const [isTL, setTL] = useState(false);
     const [tabValue, setTabValue] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
+    const [isUpdate, setIsUpdate] = useState(false);
     
     const tabValueRef = useRef(0);
     let [{ time, format }, start, stop, reset] = useStopwatch();
@@ -355,9 +358,20 @@ const Overview = () => {
                             showConfirmButton: false 
                         }).then(()=> {
                             getTasks(tabValue);
+                            let counter = 20;
+                            let myInterval = setInterval(()=> {
+                                counter -= 1;
+                                setConffettiOpacity(counter/20)
+                            }, [200]);
+                            
+                            setTimeout(()=> {
+                                clearInterval(myInterval);
+                            }, [4000]);
+
                             setTimeout(()=> {
                                 setShowSubmittedConffeti(false);
-                            }, [3000])
+                                setConffettiOpacity(1);
+                            }, [5000])
                         });
                     } else {
                         
@@ -444,6 +458,34 @@ const Overview = () => {
         getTasks(newValue)
     };
 
+    const handleUpdateTask = (output) => {
+        console.log(output);
+        setSelectedMajorOutputValue(output.major_output);
+        handleClickOpen();
+    }
+
+    const handleDeleteTask = (task) => {
+        Swal.fire({
+            icon: 'info',
+            title: 'Sure ka bang gusto mo to i-delete?',
+            showDenyButton: true,
+            showCancelButton: false,
+            confirmButtonText: 'Sharon Cuneta',
+            denyButtonText: `Char lang`,
+          }).then((result) => {
+            /* Read more about isConfirmed, isDenied below */
+            if (result.isConfirmed) {
+                axios.post(`${IP_ADDR}/delete_task`, {output_id: task.output_id})
+                .then(function (response) {
+                    if (response.data.status === true) {
+                        getTasks(tabValue);
+                        Swal.fire('Task Deleted!', response.data.message , 'success')
+                    }
+                });
+            }
+          })
+    }
+
     return (
         <Fragment>
             <CssBaseline />
@@ -468,7 +510,7 @@ const Overview = () => {
                     </Grid>
                     <Grid item xs={12}>
                         <ButtonGroup variant="text" aria-label="text button group">
-                            <Button startIcon={<AddCircleOutlineIcon />} onClick={handleClickOpen}>Create a task</Button>
+                            <Button startIcon={<AddCircleOutlineIcon />} onClick={()=> {setIsUpdate(false); handleClickOpen();}}>Create a task</Button>
                             <Button startIcon={<AssessmentIcon />}>Generate latest RACI</Button>
                             <Button startIcon={<SummarizeIcon />}>Generate Monthly Accomplishment Report</Button>
                         </ButtonGroup>
@@ -527,22 +569,28 @@ const Overview = () => {
                                                             <Grid item xs={4}>
                                                                 <Button startIcon={<CheckCircleOutlineIcon/>} color="success" onClick={()=> submitTask(element)}>{tabValue == 0 ? 'Submit task' : tabValue == 1 ?  'Mark as Done' : 'Archive task'}</Button>
                                                             </Grid>
+                                                                <Grid item xs={4}>
+                                                                <Button color="error" startIcon={<DeleteOutlineIcon/>} onClick={()=> { handleDeleteTask(element)}}>Delete task</Button>
+                                                            </Grid>
                                                         </Grid>
                                                     </Grid>
                                                 </Grid>
                                             </AccordionSummary>
                                             <AccordionDetails>
-                                            <Typography>
-                                                {
-                                                    element.details != "" && element.details != null ? 
-                                                        element.details
-                                                    :
-                                                        <Typography>
-                                                            <Box sx={{ fontStyle: 'italic', m: 1 }}>Wala kang nilagay na details. Kasalanan mo kung bakit ka nalilito kung ano tong task na to.</Box>
-                                                        </Typography>
-                                                }
-                                            </Typography>
-                                            <Typography variant="overline" sx={{fontWeight: 500}}>Nakaka {timeConvert(element.total_time_spent)} ka na. 🥬 {element.total_time_spent > 480 && 'Aba, bilisan mo mag work.'} </Typography>
+                                                <Typography onClick={()=> {
+                                                    setIsUpdate(true);
+                                                    handleUpdateTask(element);
+                                                }}>
+                                                    {
+                                                        element.details != "" && element.details != null ? 
+                                                            element.details
+                                                        :
+                                                            <Typography>
+                                                                <Box sx={{ fontStyle: 'italic', m: 1 }}>Wala kang nilagay na details. Kasalanan mo kung bakit ka nalilito kung ano tong task na to.</Box>
+                                                            </Typography>
+                                                    }
+                                                </Typography>
+                                                <Typography variant="overline" sx={{fontWeight: 500}}>Nakaka {timeConvert(element.total_time_spent)} ka na. 🥬 {element.total_time_spent > 480 && 'Aba, bilisan mo mag work.'} </Typography>
                                             </AccordionDetails>
                                         </Accordion>
                                     ))
@@ -561,9 +609,9 @@ const Overview = () => {
                 role="presentation"
                 sx={{
                     position: "fixed",
-                    bottom: 32,
-                    right: 32,
-                    zIndex: 1,
+                    bottom: 0,
+                    right: 0,
+                    zIndex: 999999,
                 }}
                 >
                 <Fab
@@ -577,12 +625,12 @@ const Overview = () => {
                 </Box>
             </Zoom>
             <BootstrapDialog
-                onClose={handleClose}
+                onClose={()=> {handleClose(); setIsUpdate(false);}}
                 aria-labelledby="customized-dialog-title"
                 open={open}
             >
-                <BootstrapDialogTitle id="customized-dialog-title" onClose={handleClose}>
-                    Create a task
+                <BootstrapDialogTitle id="customized-dialog-title" onClose={()=> {handleClose(); setIsUpdate(false);}}>
+                    {isUpdate ? 'Update' : 'Create a '} task
                 </BootstrapDialogTitle>
                 <DialogContent dividers>
                     <Container maxWidth="lg">
@@ -682,17 +730,19 @@ const Overview = () => {
                 }}>
                     Reset form
                 </Button>
-                <Button autoFocus onClick={handleSave}>
+                <Button disabled={isUpdate} autoFocus onClick={handleSave}>
                     Save changes
                 </Button>
                 </DialogActions>
             </BootstrapDialog>
             {
                 showSubmittedConffeti && 
-                <Confetti
-                    width={width}
-                    height={height}
-                />
+                    <div style={{opacity: conffettiOpacity}}>
+                        <Confetti
+                            width={width}
+                            height={height}
+                        />
+                    </div>
             }
 
         </Fragment>

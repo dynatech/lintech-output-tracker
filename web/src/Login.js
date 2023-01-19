@@ -15,12 +15,14 @@ import Swal from 'sweetalert2';
 import { motion, useAnimation } from "framer-motion"
 import { useSnackbar } from 'notistack';
   
-const IP_ADDR = "http://192.168.150.108:6969";
+const IP_ADDR = "http://localhost:6969";
+
 const Login = (props) => {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isAnimationPlaying, setIsAnimationPlaying] = useState(false);
+    const [isHidden, setIsHidden] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 
     const handleClick = () => {
@@ -31,7 +33,8 @@ const Login = (props) => {
 
 	const divAnimationVariants = {
 	    anim: {
-	        x: 600,
+	        x: Math.floor(Math.random() * (2 - 1 + 1) + 1) == 1 ? 600 : -600,
+            y: Math.random() * (500 - -500) + -500,
 		    transition: {
 	            type: "spring",
                 stiffness: 35
@@ -39,6 +42,18 @@ const Login = (props) => {
             rotate: [0, -200]
 	    }
 	}
+
+    const divAnimationVariantsBalik = {
+        anim: {
+	        x: 0,
+            y: 0,
+		    transition: {
+	            type: "spring",
+                stiffness: 35
+	        },
+            rotate: [-200, 0]
+	    }
+    }
 
     const handleLogin = () => {
         axios.post(`${IP_ADDR}/login`, {
@@ -85,13 +100,23 @@ const Login = (props) => {
         });
         
     }
+
+    useEffect(()=> {
+        if (username != "" && password != "" && isHidden == true) {
+            console.log("HIT")
+            divAnimationControls.start(divAnimationVariantsBalik.anim)
+            setIsHidden(false);
+        }
+    }, [username, password, isHidden])
+
+
     return (
         <Fragment>
             <div style={{backgroundColor: 'grey', height: window.innerHeight}}>
                 <CssBaseline />
                 <Container maxWidth="md">
                     <Grid container justifyContent="center" alignItems="center">
-                            <Card sx={{ height: '75vh', width: '75vh', marginTop: '10%', boxShadow: 10, backgroundColor: '#fdfdfd', p: 2}}>
+                            <Card sx={{ height: '80vh', width: '75vh', marginTop: '10%', boxShadow: 10, backgroundColor: '#fdfdfd', p: 2}}>
                                 <CardMedia
                                     sx={{ height: '35vh'}}
                                     image={LintechPicture}
@@ -156,12 +181,16 @@ const Login = (props) => {
                                                         handleClick()
                                                         divAnimationControls.start(divAnimationVariants.anim)
                                                     }
+                                                    setIsHidden(true);
                                                     }}>
                                                         <Button variant="contained" size="medium">Login</Button>
                                             </motion.div>
                                         
                                         ) : (
-                                                <Button variant="contained" size="medium" onClick={handleLogin}>Login</Button>
+                                                <motion.div
+                                                    animate={divAnimationControls}>
+                                                    <Button variant="contained" size="medium" onClick={handleLogin}>Login</Button>
+                                                </motion.div>
                                             )
                                     }
                                     </Grid>
