@@ -144,7 +144,7 @@ const Overview = () => {
     const [isLoading, setIsLoading] = useState(false);
     
     const tabValueRef = useRef(0);
-    const [{ time, format }, start, stop, reset] = useStopwatch();
+    let [{ time, format }, start, stop, reset] = useStopwatch();
     // const { width, height } = useWindowSize();
     const width =  window.innerWidth;
     const height = window.innerHeight;
@@ -222,7 +222,6 @@ const Overview = () => {
     }, []);
 
     const getTasks = (category) => {
-        console.log(category)
         let user_id = JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id'];
         axios.get(`${IP_ADDR}/get_tasks/${user_id}/${category}`)
         .then(function (response) {
@@ -309,7 +308,7 @@ const Overview = () => {
                 console.log(error);
             });
         } else {
-            stop();
+            reset();
             axios.post(`${IP_ADDR}/stop_timer`, {output_id: id})
             .then(function (response) {
                 if (response.data.status == true) {
