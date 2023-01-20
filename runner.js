@@ -8,19 +8,19 @@ const cors = require("cors");
 const fetch = require("node-fetch");
 const port = 6969;
 
-// const local = mysql.createPool({
-//     host: "192.168.150.112",
-//     user: "si",
-//     password: "softwareinfra",
-//     database: "commons_db"
-// });
-
 const local = mysql.createPool({
-    host: "127.0.0.1",
-    user: "root",
-    password: "senslope",
+    host: "192.168.150.112",
+    user: "si",
+    password: "softwareinfra",
     database: "commons_db"
 });
+
+// const local = mysql.createPool({
+//     host: "127.0.0.1",
+//     user: "root",
+//     password: "senslope",
+//     database: "commons_db"
+// });
 
 app.use(cors());
 app.use(express.json());
