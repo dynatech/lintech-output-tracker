@@ -4,11 +4,14 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
 import { useState, useEffect, Fragment } from 'react';
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from './Header';
 import Overview from './Overview';
 import Files from './Files';
 import Calendar from './Calendar';
 import Login from './Login';
+import GenerateMonthlyAccomplishment from './GenerateMonthlyAccomplishment';
 
 const PageSwitcher = ({index, setSwitcher}) => {
   let component = null;
@@ -31,9 +34,21 @@ const PageSwitcher = ({index, setSwitcher}) => {
   return component;
 }
 
+
 const App = () => {
   const [pageSwitcher, setSwitcher] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+
+  const MainComponent = () => {
+    return(
+      <div>
+        {
+          currentPageIndex != 0 && <Header setSwitcher={setSwitcher}/>
+        }
+        <PageSwitcher index={currentPageIndex} setSwitcher={setSwitcher}/>
+      </div>
+    )
+  }
 
   useEffect(()=> {
     if (currentPageIndex != pageSwitcher) {
@@ -49,12 +64,20 @@ const App = () => {
   }, []);
 
   return(
-    <div>
-      {
-        currentPageIndex != 0 && <Header setSwitcher={setSwitcher}/>
-      }
-      <PageSwitcher index={currentPageIndex} setSwitcher={setSwitcher}/>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainComponent />} />
+          {/* <Route index element={<MainComponent />} /> */}
+        <Route path="generate_monthly_accomplishment" element={<GenerateMonthlyAccomplishment />} />
+      </Routes>
+    </BrowserRouter>
+    
+    // <div>
+    //   {
+    //     currentPageIndex != 0 && <Header setSwitcher={setSwitcher}/>
+    //   }
+    //   <PageSwitcher index={currentPageIndex} setSwitcher={setSwitcher}/>
+    // </div>
   )
 }
 
