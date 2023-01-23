@@ -49,7 +49,6 @@ const App = () => {
       </div>
     )
   }
-
   useEffect(()=> {
     if (currentPageIndex != pageSwitcher) {
       setCurrentPageIndex(pageSwitcher)
@@ -67,17 +66,9 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<MainComponent />} />
-          {/* <Route index element={<MainComponent />} /> */}
         <Route path="generate_monthly_accomplishment" element={<GenerateMonthlyAccomplishment />} />
       </Routes>
     </BrowserRouter>
-    
-    // <div>
-    //   {
-    //     currentPageIndex != 0 && <Header setSwitcher={setSwitcher}/>
-    //   }
-    //   <PageSwitcher index={currentPageIndex} setSwitcher={setSwitcher}/>
-    // </div>
   )
 }
 

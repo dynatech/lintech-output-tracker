@@ -17,8 +17,8 @@ const local = mysql.createPool({
 
 // const local = mysql.createPool({
 //     host: "127.0.0.1",
-//     user: "root",
-//     password: "senslope",
+//     user: "softwareinfra",
+//     password: "dynaslope2020",
 //     database: "commons_db"
 // });
 

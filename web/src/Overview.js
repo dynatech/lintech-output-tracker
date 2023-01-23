@@ -16,6 +16,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { useNavigate } from "react-router-dom";
 
 import Fab from '@mui/material/Fab';
 import Zoom from '@mui/material/Zoom';
@@ -100,7 +101,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
         };
     }
 
-const IP_ADDR = "http://192.168.150.108:6969";
+const IP_ADDR = "http://localhost:6969";
 
 function BootstrapDialogTitle(props: DialogTitleProps) {
     const { children, onClose, ...other } = props;
@@ -145,6 +146,8 @@ const Overview = () => {
     const [tabValue, setTabValue] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [isUpdate, setIsUpdate] = useState(false);
+
+    const navigate = useNavigate();
     
     const tabValueRef = useRef(0);
     let [{ time, format }, start, stop, reset] = useStopwatch();
@@ -512,7 +515,7 @@ const Overview = () => {
                         <ButtonGroup variant="text" aria-label="text button group">
                             <Button startIcon={<AddCircleOutlineIcon />} onClick={()=> {setIsUpdate(false); handleClickOpen();}}>Create a task</Button>
                             <Button startIcon={<AssessmentIcon />}>Generate latest RACI</Button>
-                            <Button startIcon={<SummarizeIcon />}>Generate Monthly Accomplishment Report</Button>
+                            <Button startIcon={<SummarizeIcon />} onClick={() => { navigate("/generate_monthly_accomplishment"); }}>Generate Monthly Accomplishment Report</Button>
                         </ButtonGroup>
                     </Grid>
                     <Grid item xs={12}>
