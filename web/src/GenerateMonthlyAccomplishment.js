@@ -13,7 +13,7 @@ import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import moment from 'moment';
 import axios from 'axios';
 
-const IP_ADDR = "http://192.168.150.108:6969";
+const IP_ADDR = "http://localhost:6969";
 
 const RenderOutputRow = ({output}) => {
     console.log(output)
@@ -67,7 +67,7 @@ const GenerateMonthlyAccomplishment = () => {
             ts_end: moment(endDate).format("YYYY-MM-DD 23:59:59"),
             user_id: JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id']
         }
-        axios.post(`${IP_ADDR}/api/shift_checker/get_shift_data`, data).then((response)=> {
+        axios.post(`http://192.168.150.110:5000/api/shift_checker/get_shift_data`, data).then((response)=> {
             let output = {
                 logframe: '2.3.2 Monitoring Operations',
                 actual_output: '',
