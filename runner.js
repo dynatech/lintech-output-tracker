@@ -8,19 +8,19 @@ const cors = require("cors");
 const fetch = require("node-fetch");
 const port = 6969;
 
-const local = mysql.createPool({
-    host: "192.168.150.112",
-    user: "si",
-    password: "softwareinfra",
-    database: "commons_db"
-});
-
 // const local = mysql.createPool({
-//     host: "127.0.0.1",
-//     user: "softwareinfra",
-//     password: "dynaslope2020",
+//     host: "192.168.150.112",
+//     user: "si",
+//     password: "softwareinfra",
 //     database: "commons_db"
 // });
+
+const local = mysql.createPool({
+    host: "127.0.0.1",
+    user: "root",
+    password: "senslope",
+    database: "commons_db"
+});
 
 app.use(cors());
 app.use(express.json());
@@ -191,10 +191,35 @@ app.get("/get_users", (req, res) => {
 });
 
 app.post("/get_accomplished_outputs", (req, res) => {
-    console.log(req.body.ts_start);
-    console.log(req.body.ts_end);
-    console.group(req.body.user_id);
+    let query = `SELECT * FROM commons_db.log_frame_outputs INNER JOIN commons_db.log_frame ON log_frame_outputs.log_frame_id = log_frame.id where status > 0 and submitted_ts between '${req.body.ts_start}' and '${req.body.ts_end}' and user_id = ${req.body.user_id}`;
+    local.query(query, (err, result) => {
+        let return_value = [];
+        result.forEach(element => {
+            return_value.push({
+                major_output: element.major_output,
+                actual_output: element.actual_outputs,
+                output_details: element.details
+            });
+        });
+        res.send({
+            status: true,
+            data: return_value
+        });
+    });
+});
 
+app.get("/migrate_1", (req, res) => {
+    let query = "ALTER TABLE `commons_db`.`log_frame_outputs` ADD COLUMN `submitted_ts` DATETIME NULL AFTER `details`;";
+    local.query(query, (err, result) => {
+        let update_submitted_ts_query = "SELECT output_id from `commons_db`.`log_frame_outputs` where status > 0";
+        local.query(update_submitted_ts_query, (err, result) => {
+            result.forEach(el => {
+                let update_ts = `UPDATE commons_db.log_frame_outputs SET submitted_ts = '${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}' where output_id = '${el.output_id}'`;
+                local.query(update_ts, (err, result) => {
+                });
+            });
+        });
+    });
 });
 
 function webhook(message) {

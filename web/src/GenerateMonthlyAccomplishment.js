@@ -67,7 +67,7 @@ const GenerateMonthlyAccomplishment = () => {
             ts_end: moment(endDate).format("YYYY-MM-DD 23:59:59"),
             user_id: JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id']
         }
-        axios.post('http://192.168.150.110:5000/api/shift_checker/get_shift_data', data).then((response)=> {
+        axios.post(`${IP_ADDR}/api/shift_checker/get_shift_data`, data).then((response)=> {
             let output = {
                 logframe: '2.3.2 Monitoring Operations',
                 actual_output: '',
@@ -97,7 +97,11 @@ const GenerateMonthlyAccomplishment = () => {
         }
 
         axios.post(`${IP_ADDR}/get_accomplished_outputs`, data).then((response)=> {
-            console.log(response);
+            if (response.data.status === true) {
+                response.data.data.forEach(element => {
+                    console.log("ELEMENT:", element);
+                });
+            }
         });
     }
 
