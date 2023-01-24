@@ -16,7 +16,6 @@ import axios from 'axios';
 const IP_ADDR = "http://localhost:6969";
 
 const RenderOutputRow = ({output}) => {
-    console.log(output)
     return(
         <Fragment>
             <Grid item xs={12}>
@@ -55,6 +54,7 @@ const GenerateMonthlyAccomplishment = () => {
     const [startDate, setStartDate] = useState(moment().format("YYYY-MM-DD"));
     const [endDate, setEndDate] = useState(moment().format("YYYY-MM-DD"));
     const [outputList, setOutputList] = useState([]);
+    const [actualOutputList, setActualOutputList] = useState([]);
 
     const handleGenerate = () => {
         getMonitoringShifts();
@@ -95,12 +95,23 @@ const GenerateMonthlyAccomplishment = () => {
             ts_end: moment(endDate).format("YYYY-MM-DD 23:59:59"),
             user_id: JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id']
         }
+        let outputs = [];
 
         axios.post(`${IP_ADDR}/get_accomplished_outputs`, data).then((response)=> {
             if (response.data.status === true) {
                 response.data.data.forEach(element => {
-                    console.log("ELEMENT:", element);
+                    let output_exist = outputs.findIndex(x => x.logframe == element.major_output);
+                    if (output_exist == -1) {
+                        outputs.push({
+                            logframe: element.major_output,
+                            actual_output: ` - ${element.actual_output}`,
+                            remarks: ``
+                        })
+                    } else {
+                        outputs[output_exist].actual_output = outputs[output_exist].actual_output + ` - ${element.actual_output}\n`
+                    }
                 });
+                setActualOutputList(outputs);
             }
         });
     }
@@ -144,9 +155,18 @@ const GenerateMonthlyAccomplishment = () => {
                                 <Grid container spacing={2}>
                                     {
                                         outputList.length != 0 ? 
-                                            outputList.map((row)=> (
-                                                <RenderOutputRow output={row}/>
-                                            ))
+                                            <Fragment>
+                                               {
+                                                 outputList.map((row)=> (
+                                                    <RenderOutputRow output={row}/>
+                                                ))
+                                               }
+                                               {
+                                                 actualOutputList.map((row)=> (
+                                                    <RenderOutputRow output={row}/>
+                                                ))
+                                               }
+                                            </Fragment>
                                         :
                                             <Grid item xs={12} sx={{p: 2, display: 'flex', justifyContent: 'center', height: '25rem', alignItems: 'center'}}>
                                                 <Typography variant="button" sx={{fontWeight: 'bold'}}>Click mo yung "Generate" dali.</Typography>
@@ -170,6 +190,23 @@ const GenerateMonthlyAccomplishment = () => {
                                 },
                             }}
                             >
+                                <Container>
+                                    <Grid container spacing={2} sx={{textAlign: 'center', p:4}}>
+                                        <Grid item xs={12}>
+                                            <Typography sx={{fontWeight: 500}}>ACCOMPLISHMENT REPORT</Typography>
+                                            <Typography sx={{fontSize: '0.9rem'}}>For the period covering {moment(startDate).format("MMMM")} {moment(startDate).format("DD")} - {moment(endDate).format("DD")}, {moment(endDate).format("YYYY")}</Typography>
+                                        </Grid>
+                                        <Grid item xs={12}>
+                                            <table style={{'borderCollapse': 'collapse'}}>
+                                                <tr>
+                                                    <th style={{"borderWidth":"1.5px", 'borderColor':"black", 'borderStyle':'solid', 'fontSize': '12px'}}>Tasks / Activities/ Expected Outputs</th>
+                                                    <th style={{"borderWidth":"1.5px", 'borderColor':"black", 'borderStyle':'solid', 'fontSize': '12px'}}>Accomplishment / Outputs</th>
+                                                    <th style={{"borderWidth":"1.5px", 'borderColor':"black", 'borderStyle':'solid', 'fontSize': '12px'}}>Remarks</th>
+                                                </tr>
+                                            </table>
+                                        </Grid>
+                                    </Grid>
+                                </Container>
                         </Box>
                     </Grid>
                 </Grid>
