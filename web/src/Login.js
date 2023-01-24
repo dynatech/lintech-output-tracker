@@ -15,7 +15,7 @@ import Swal from 'sweetalert2';
 import { motion, useAnimation } from "framer-motion"
 import { useSnackbar } from 'notistack';
   
-const IP_ADDR = "http://192.168.150.108t:6969";
+const IP_ADDR = "http://192.168.150.108:6969";
 
 const Login = (props) => {
 
