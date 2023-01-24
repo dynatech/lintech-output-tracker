@@ -13,7 +13,7 @@ import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import moment from 'moment';
 import axios from 'axios';
 
-const IP_ADDR = "http://localhost:6969";
+const IP_ADDR = "http://192.168.150.108:6969";
 
 const RenderOutputRow = ({output}) => {
     console.log(output)

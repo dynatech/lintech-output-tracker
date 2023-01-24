@@ -8,19 +8,19 @@ const cors = require("cors");
 const fetch = require("node-fetch");
 const port = 6969;
 
-// const local = mysql.createPool({
-//     host: "192.168.150.112",
-//     user: "si",
-//     password: "softwareinfra",
-//     database: "commons_db"
-// });
-
 const local = mysql.createPool({
-    host: "127.0.0.1",
-    user: "root",
-    password: "senslope",
+    host: "192.168.150.112",
+    user: "si",
+    password: "softwareinfra",
     database: "commons_db"
 });
+
+// const local = mysql.createPool({
+//     host: "127.0.0.1",
+//     user: "softwareinfra",
+//     password: "dynaslope2020",
+//     database: "commons_db"
+// });
 
 app.use(cors());
 app.use(express.json());
@@ -65,7 +65,7 @@ app.post("/delete_task", (req, res) => {
 app.post("/save_task", (req, res) => {
     req.body.assigned_to.forEach(element => {
         let req_status = true;
-        let query = `INSERT INTO log_frame_outputs VALUES (0, ${req.body.major_output.id}, ${element.user_id}, '${req.body.output_details}', 0, '${req.body.output_notes}');`
+        let query = `INSERT INTO log_frame_outputs VALUES (0, ${req.body.major_output.id}, ${element.user_id}, '${req.body.output_details}', 0, '${req.body.output_notes}', NULL');`
         local.query(query, (err, result) => {
             if (err) {
                 req_status = false
@@ -211,6 +211,7 @@ app.post("/get_accomplished_outputs", (req, res) => {
 app.get("/migrate_1", (req, res) => {
     let query = "ALTER TABLE `commons_db`.`log_frame_outputs` ADD COLUMN `submitted_ts` DATETIME NULL AFTER `details`;";
     local.query(query, (err, result) => {
+        console.log("ERR:", err);
         let update_submitted_ts_query = "SELECT output_id from `commons_db`.`log_frame_outputs` where status > 0";
         local.query(update_submitted_ts_query, (err, result) => {
             result.forEach(el => {
