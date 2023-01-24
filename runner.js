@@ -65,7 +65,7 @@ app.post("/delete_task", (req, res) => {
 app.post("/save_task", (req, res) => {
     req.body.assigned_to.forEach(element => {
         let req_status = true;
-        let query = `INSERT INTO log_frame_outputs VALUES (0, ${req.body.major_output.id}, ${element.user_id}, '${req.body.output_details}', 0, '${req.body.output_notes}', NULL');`
+        let query = `INSERT INTO log_frame_outputs VALUES (0, ${req.body.major_output.id}, ${element.user_id}, '${req.body.output_details}', 0, '${req.body.output_notes}', NULL);`
         local.query(query, (err, result) => {
             if (err) {
                 req_status = false
