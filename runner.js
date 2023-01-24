@@ -190,6 +190,13 @@ app.get("/get_users", (req, res) => {
     });
 });
 
+app.post("/get_accomplished_outputs", (req, res) => {
+    console.log(req.body.ts_start);
+    console.log(req.body.ts_end);
+    console.group(req.body.user_id);
+
+});
+
 function webhook(message) {
     console.log("TRIGGER THE HOOK")
     const webhookURL = 'https://chat.googleapis.com/v1/spaces/AAAAYxLNg1A/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=j1WQDuzXXv7zoiNUkhcqZdEkVw8tFnn_eUNbEzWjDqQ%3D';
