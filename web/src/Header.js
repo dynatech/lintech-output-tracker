@@ -11,11 +11,13 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import { useNavigate } from "react-router-dom";
 
 const pages = ['Tasks', 'Files', 'Calendar'];
 const settings = ['Logout'];
 
 const Header = (props) => {
+    const navigate = useNavigate();
     const [anchorElNav, setAnchorElNav] = useState(null);
     const [anchorElUser, setAnchorElUser] = useState(null);
     const [name, setName] = useState("B");
@@ -60,7 +62,11 @@ const Header = (props) => {
             }}
             onClick={(event)=> {
                 event.preventDefault();
-                props.setSwitcher(1);
+                if (props.hasOwnProperty('setSwitcher')) {
+                  props.setSwitcher(1);
+                } else {
+                  navigate("/");
+                }
             }}
           >
             LinTech 🐄  🥬 Output Tracker
@@ -99,7 +105,11 @@ const Header = (props) => {
                 <MenuItem key={page} onClick={(event) => {
                     handleCloseNavMenu();
                     event.preventDefault();
-                    props.setSwitcher(index+1);
+                    if (props.hasOwnProperty("setSwitcher")) {
+                      props.setSwitcher(index+1);
+                    }  else {
+                      navigate("/");
+                    }
                 }}>
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
@@ -131,7 +141,11 @@ const Header = (props) => {
                 onClick={(event)=> {
                     handleCloseNavMenu();
                     event.preventDefault();
-                    props.setSwitcher(index+1);
+                    if (props.hasOwnProperty('setSwitcher')) {
+                      props.setSwitcher(index+1);
+                    } else {
+                      navigate("/");
+                    }
                 }}
                 sx={{ my: 2, color: 'white', display: 'block' }}
               >
@@ -166,7 +180,11 @@ const Header = (props) => {
                 <MenuItem key={setting} onClick={handleCloseUserMenu}>
                   <Typography textAlign="center" onClick={()=> {
                         localStorage.removeItem('credentials');
-                        props.setSwitcher(0);
+                        if (props.hasOwnProperty('setSwitcher')) {
+                          props.setSwitcher(0);
+                        } else {
+                          navigate("/");
+                        }
                   }}>{setting}</Typography>
                 </MenuItem>
               ))}
