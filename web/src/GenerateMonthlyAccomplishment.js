@@ -1,4 +1,4 @@
-import { useEffect, Fragment, useState } from'react';
+import { useEffect, Fragment, useState, createRef } from'react';
 import Header from "./Header";
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -14,36 +14,53 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import moment from 'moment';
 import axios from 'axios';
+import Pdf from "react-to-pdf";
 
 const IP_ADDR = "http://localhost:6969";
 
-const RenderOutputRow = ({output}) => {
+const RenderOutputRow = ({output, rowIndex, setOutputList, outputList}) => {
     return(
         <Fragment>
             <Grid item xs={12}>
                 <Grid container spacing={2} sx={{pr: 2}}>
                     <Grid item xs={3} >
                         <TextField id="outlined-basic" label="Logframe" 
-                            value={output.logframe} 
-                            variant="outlined" sx={{width: '100%'}}/>
+                            defaultValue={output.logframe} 
+                            variant="outlined" sx={{width: '100%'}}
+                            onChange={(e) => {
+                                let temp = [...outputList];
+                                temp[rowIndex].logframe = e.target.value;
+                                setOutputList(temp);
+                            }}/>
                     </Grid>
                     <Grid item xs={5}>
                         <TextField id="outlined-basic" 
                             label="Actual Outputs" 
-                            value={output.actual_output} 
+                            defaultValue={output.actual_output} 
                             variant="outlined" 
                             multiline
                             rows={4}
-                            sx={{width: '100%'}}/>
+                            sx={{width: '100%'}}
+                            onChange={(e) => {
+                                let temp = [...outputList];
+                                temp[rowIndex].actual_output = e.target.value;
+                                console.log(temp);
+                                setOutputList(temp);
+                            }}/>
                     </Grid>
                     <Grid item xs={4}>
                         <TextField id="outlined-basic" 
                             label="Remarks" 
-                            value={output.remarks} 
+                            defaultValue={output.remarks} 
                             variant="outlined" 
                             multiline
                             rows={4}
-                            sx={{width: '100%'}}/>
+                            sx={{width: '100%'}}
+                            onChange={(e) => {
+                                let temp = [...outputList];
+                                temp[rowIndex].remarks = e.target.value;
+                                setOutputList(temp);
+                            }}/>
                     </Grid>
                 </Grid>
             </Grid>
@@ -59,6 +76,7 @@ const GenerateMonthlyAccomplishment = () => {
     const [actualOutputList, setActualOutputList] = useState([]);
     const [additionalOutputs, setAdditionalOutputs] = useState([]);
     const [jobTitle, setJobTitle] = useState(null);
+    const ref = createRef();
 
     useEffect(()=> {
         console.log("JSON.parse(localStorage.getItem('credentials'))['credentials']:", JSON.parse(localStorage.getItem('credentials'))['credentials']);
@@ -172,13 +190,13 @@ const GenerateMonthlyAccomplishment = () => {
                                         (outputList.length != 0 || actualOutputList.length != 0) ? 
                                             <Fragment>
                                                {
-                                                 outputList.map((row)=> (
-                                                    <RenderOutputRow output={row}/>
+                                                 outputList.map((row, index)=> (
+                                                    <RenderOutputRow output={row} rowIndex={index} setOutputList={setOutputList} outputList={outputList}/>
                                                 ))
                                                }
                                                {
-                                                 actualOutputList.map((row)=> (
-                                                    <RenderOutputRow output={row}/>
+                                                 actualOutputList.map((row, index)=> (
+                                                    <RenderOutputRow output={row} rowIndex={index} setOutputList={setActualOutputList} outputList={actualOutputList}/>
                                                 ))
                                                }
                                             </Fragment>
@@ -190,8 +208,8 @@ const GenerateMonthlyAccomplishment = () => {
                                 </Grid>
                             </Grid>
                             {
-                                additionalOutputs.map((row) => (
-                                    <RenderOutputRow output={row} />
+                                additionalOutputs.map((row, index) => (
+                                    <RenderOutputRow output={row} rowIndex={index} setOutputList={setAdditionalOutputs} outputList={additionalOutputs}/>
                                 ))
                             }
                             {
@@ -209,11 +227,15 @@ const GenerateMonthlyAccomplishment = () => {
                         </Grid>
                     </Grid>
                     <Grid item xs={4}>
+                        <Pdf targetRef={ref} filename="code-example.pdf">
+                            {({ toPdf }) => <button onClick={toPdf}>Generate Pdf</button>}
+                        </Pdf>
                         <Typography variant="h6" sx={{textAlign: 'center', fontWeight: 500}}>PREVIEW</Typography>
                         <Box
+                            ref={ref}
                             sx={{
                                 width: '100%',
-                                height: '50rem',
+                                height: window.innerHeight-150,
                                 border: '1px solid',
                                 backgroundColor: '#f5f5f5',
                                 '&:hover': {
@@ -222,7 +244,7 @@ const GenerateMonthlyAccomplishment = () => {
                                 },
                             }}
                             >
-                                <Container>
+                                <Container >
                                     <Grid container spacing={2} sx={{textAlign: 'center', pr:3,pl:3,pt:5}}>
                                         <Grid item xs={12}>
                                             <Typography sx={{fontWeight: 'bold'}}>ACCOMPLISHMENT REPORT</Typography>
@@ -253,64 +275,78 @@ const GenerateMonthlyAccomplishment = () => {
                                                         </tr>
                                                     ))
                                                 }
+                                                {
+                                                    additionalOutputs.map((el)=> (
+                                                        <tr style={{'paddingTop': '5px', 'paddingBottom': '5px'}}>
+                                                            <td style={{"borderWidth":"1.5px", 'borderColor':"black", 'borderStyle':'solid', 'fontSize': '10px', 'width': '30%', 'paddingTop': '2px', 'paddingBottom': '2px', 'whiteSpace': 'pre-line'}}>{el.logframe}<br/></td>
+                                                            <td style={{"borderWidth":"1.5px", 'borderColor':"black", 'borderStyle':'solid', 'fontSize': '10px', 'width': '50%', 'paddingTop': '2px', 'paddingBottom': '2px', 'whiteSpace': 'pre-line', 'textAlign': 'left', 'paddingLeft': '5px', 'paddingRight': '5px'}}>{el.actual_output}</td>
+                                                            <td style={{"borderWidth":"1.5px", 'borderColor':"black", 'borderStyle':'solid', 'fontSize': '10px', 'width': '20%', 'paddingTop': '2px', 'paddingBottom': '2px', 'whiteSpace': 'pre-line', 'textAlign': 'left', 'paddingLeft': '5px', 'paddingRight': '5px'}}>{el.remarks}</td>
+                                                        </tr>
+                                                    ))
+                                                }
                                             </table>
                                         </Grid>
-                                        <Grid item xs={6}>
-                                            <Container>
-                                                <Grid container spacing={2}>
-                                                    <Grid item sx={{textAlign: 'left'}}>
-                                                        <Typography sx={{fontSize: 9, pb: 2}}>
-                                                            Submitted by:
-                                                        </Typography>
-                                                    </Grid>
-                                                    <Grid item sx={{textAlign: 'left'}}>
-                                                        <Typography sx={{fontSize: 9, fontWeight: 'bold', textDecoration: 'underline'}}>
-                                                            {`${JSON.parse(localStorage.getItem('credentials'))['credentials']['first_name'].toUpperCase()} ${JSON.parse(localStorage.getItem('credentials'))['credentials']['last_name'].toUpperCase()}`}
-                                                        </Typography>
-                                                        <Typography sx={{fontSize: 9,}}>
-                                                            {jobTitle}
-                                                        </Typography>
-                                                    </Grid>
+                                        <Grid item xs={12} sx={{position: 'absolute', top: window.innerHeight - 300, width: '25rem'}}>
+                                            <Grid container spacing={2}>
+                                                <Grid item xs={6}>
+                                                    <Container>
+                                                        <Grid container spacing={2}>
+                                                            <Grid item sx={{textAlign: 'left'}}>
+                                                                <Typography sx={{fontSize: 9, pb: 2}}>
+                                                                    Submitted by:
+                                                                </Typography>
+                                                            </Grid>
+                                                            <Grid item sx={{textAlign: 'left'}}>
+                                                                <Typography sx={{fontSize: 9, fontWeight: 'bold', textDecoration: 'underline'}}>
+                                                                    {`${JSON.parse(localStorage.getItem('credentials'))['credentials']['first_name'].toUpperCase()} ${JSON.parse(localStorage.getItem('credentials'))['credentials']['last_name'].toUpperCase()}`}
+                                                                </Typography>
+                                                                <Typography sx={{fontSize: 9,}}>
+                                                                    {jobTitle}
+                                                                </Typography>
+                                                            </Grid>
+                                                        </Grid>
+                                                    </Container>
                                                 </Grid>
-                                            </Container>
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Container>
-                                                <Grid container spacing={2}>
-                                                    <Grid item sx={{textAlign: 'left'}}>
-                                                        <Typography sx={{fontSize: 9, pb: 2}}>
-                                                            Noted by:
-                                                        </Typography>
-                                                    </Grid>
-                                                    <Grid item sx={{textAlign: 'left'}}>
-                                                        <Typography sx={{fontSize: 9, fontWeight: 'bold', textDecoration: 'underline'}}>
-                                                            {`ROY ALBERT N. KAIMO`}
-                                                        </Typography>
-                                                        <Typography sx={{fontSize: 9}}>
-                                                            Project Chief Technical Specialist
-                                                        </Typography>
-                                                    </Grid>
+                                                <Grid item xs={6}>
+                                                    <Container>
+                                                        <Grid container spacing={2}>
+                                                            <Grid item sx={{textAlign: 'left'}}>
+                                                                <Typography sx={{fontSize: 9, pb: 2}}>
+                                                                    Noted by:
+                                                                </Typography>
+                                                            </Grid>
+                                                            <Grid item sx={{textAlign: 'left'}}>
+                                                                <Typography sx={{fontSize: 9, fontWeight: 'bold', textDecoration: 'underline'}}>
+                                                                    {`ROY ALBERT N. KAIMO`}
+                                                                </Typography>
+                                                                <Typography sx={{fontSize: 9}}>
+                                                                    Project Chief Technical Specialist
+                                                                </Typography>
+                                                            </Grid>
+                                                        </Grid>
+                                                    </Container>
                                                 </Grid>
-                                            </Container>
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Container>
-                                                <Grid container spacing={2}>
-                                                    <Grid item sx={{textAlign: 'left'}}>
-                                                        <Typography sx={{fontSize: 9, pb: 1}}>
-                                                            Approved by:
-                                                        </Typography>
-                                                    </Grid>
-                                                    <Grid item sx={{textAlign: 'left'}}>
-                                                        <Typography sx={{fontSize: 9, fontWeight: 'bold', textDecoration: 'underline'}}>
-                                                            {`DR. Teresito C. Bacolcol`}
-                                                        </Typography>
-                                                        <Typography sx={{fontSize: 9}}>
-                                                            Director, DOST-PHIVOLCS
-                                                        </Typography>
-                                                    </Grid>
+                                                <Grid item xs={6}>
+                                                    <Container>
+                                                        <Grid container spacing={2}>
+                                                            <Grid item sx={{textAlign: 'left'}}>
+                                                                <Typography sx={{fontSize: 9, pb: 1}}>
+                                                                    Approved by:
+                                                                </Typography>
+                                                            </Grid>
+                                                            <Grid item sx={{textAlign: 'left'}}>
+                                                                <Typography sx={{fontSize: 9, fontWeight: 'bold', textDecoration: 'underline'}}>
+                                                                    {`DR. Teresito C. Bacolcol`}
+                                                                </Typography>
+                                                                <Typography sx={{fontSize: 9}}>
+                                                                    Director, DOST-PHIVOLCS
+                                                                </Typography>
+                                                            </Grid>
+                                                        </Grid>
+                                                    </Container>
                                                 </Grid>
-                                            </Container>
+                                            </Grid>
+
                                         </Grid>
                                     </Grid>
                                 </Container>
