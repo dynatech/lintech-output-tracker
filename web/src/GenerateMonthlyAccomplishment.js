@@ -85,7 +85,11 @@ const GenerateMonthlyAccomplishment = () => {
     const handleGenerate = () => {
         getMonitoringShifts();
         getActualOutputs();
+        setBox(false)
     }
+
+    const [box, setBox] = useState(true)
+
 
     const getMonitoringShifts = () => {
         let data = {
@@ -145,7 +149,7 @@ const GenerateMonthlyAccomplishment = () => {
     return (
         <Fragment>
             <Header />
-            <Container maxWidth="xl">
+            <Container maxWidth='xl'  >
                 <Grid container spacing={2} sx={{mt: 2}}>
                     <Grid item xs={8}>
                         <Grid container spacing={2}>
@@ -172,6 +176,7 @@ const GenerateMonthlyAccomplishment = () => {
                                 </Grid>
                                 <Grid item xs={4} sx={{p: 2, display: 'flex', justifyContent: 'center'}}>
                                     <Button variant="contained" sx={{width: '100%'}} onClick={handleGenerate}>Generate</Button>
+                                    
                                 </Grid>
                                 <Grid item xs={12}>
                                 <TextField id="outlined-basic" label="Your job title" 
@@ -228,14 +233,18 @@ const GenerateMonthlyAccomplishment = () => {
                     </Grid>
                     <Grid item xs={4}>
                         <Pdf targetRef={ref} filename="code-example.pdf">
-                            {({ toPdf }) => <button onClick={toPdf}>Generate Pdf</button>}
+                            {({ toPdf }) => <button onClick={()=> {
+                                toPdf();
+                                setBox(true);
+                            }}
+                                >Generate Pdf</button>}
                         </Pdf>
-                        <Typography variant="h6" sx={{textAlign: 'center', fontWeight: 500}}>PREVIEW</Typography>
+                        <Typography variant="h6" sx={{marginLeft: box == true ? 0 : 40, textAlign: 'center', fontWeight: 500}}>PREVIEW</Typography>
                         <Box
                             ref={ref}
                             sx={{
-                                width: '100%',
-                                height: window.innerHeight-150,
+                                width: box == true ? '100%' : window.innerWidth-1063,
+                                height: box == true ? window.innerHeight-150 : window.innerHeight+200,
                                 border: '1px solid',
                                 backgroundColor: '#f5f5f5',
                                 '&:hover': {
@@ -246,11 +255,11 @@ const GenerateMonthlyAccomplishment = () => {
                             >
                                 <Container >
                                     <Grid container spacing={2} sx={{textAlign: 'center', pr:3,pl:3,pt:5}}>
-                                        <Grid item xs={12}>
+                                        <Grid item xs={20} sx={{marginLeft: box == true ? 0 : 8}}>
                                             <Typography sx={{fontWeight: 'bold'}}>ACCOMPLISHMENT REPORT</Typography>
                                             <Typography sx={{fontSize: '0.9rem'}}>For the period covering {moment(startDate).format("MMMM")} {moment(startDate).format("DD")} - {moment(endDate).format("DD")}, {moment(endDate).format("YYYY")}</Typography>
                                         </Grid>
-                                        <Grid item xs={12}>
+                                        <Grid item xs={12} >
                                             <table style={{'borderCollapse': 'collapse'}}>
                                                 <tr>
                                                     <th style={{"borderWidth":"1.5px", 'borderColor':"black", 'borderStyle':'solid', 'fontSize': '10px', 'width': '30%', 'paddingLeft': '10px', 'paddingRight': '10px', 'paddingTop': '2px', 'paddingBottom': '2px'}}>Tasks / Activities/ Expected Outputs</th>
@@ -285,9 +294,9 @@ const GenerateMonthlyAccomplishment = () => {
                                                     ))
                                                 }
                                             </table>
-                                        </Grid>
-                                        <Grid item xs={12} sx={{position: 'absolute', top: window.innerHeight - 300, width: '25rem'}}>
-                                            <Grid container spacing={2}>
+                                        {/* </Grid> */}
+                                        {/* <Grid item xs={12} sx={{position: 'absolute', top: window.innerHeight - 300, width: '25rem'}}> */}
+                                            <Grid container spacing={2} sx={{position: 'absolute', top: window.innerHeight - 300, width: '25rem', marginTop: 5 }}>
                                                 <Grid item xs={6}>
                                                     <Container>
                                                         <Grid container spacing={2}>
@@ -309,7 +318,7 @@ const GenerateMonthlyAccomplishment = () => {
                                                 </Grid>
                                                 <Grid item xs={6}>
                                                     <Container>
-                                                        <Grid container spacing={2}>
+                                                        <Grid container spacing={2} sx={{marginLeft: box == true ? 0 : 30}}>
                                                             <Grid item sx={{textAlign: 'left'}}>
                                                                 <Typography sx={{fontSize: 9, pb: 2}}>
                                                                     Noted by:
