@@ -77,46 +77,92 @@ const GenerateMonthlyAccomplishment = () => {
     const [additionalOutputs, setAdditionalOutputs] = useState([]);
     const [jobTitle, setJobTitle] = useState(null);
     const ref = createRef();
+    const [box, setBox] = useState(true)
+    const [initial, setInitial] = useState(true)
 
     useEffect(()=> {
         console.log("JSON.parse(localStorage.getItem('credentials'))['credentials']:", JSON.parse(localStorage.getItem('credentials'))['credentials']);
     }, []);
 
+    useEffect(()=>{
+        if (initial != true) {
+
+        if (outputList.length == 0) {
+            getMonitoringShifts();
+
+        }
+
+        if (actualOutputList.length == 0) {
+            getActualOutputs();
+
+        }
+
+        // if (additionalOutputs.length == 0) {
+            
+
+        // }
+        }
+
+    }, [outputList, actualOutputList, additionalOutputs] );
+    
+    
     const handleGenerate = () => {
-        getMonitoringShifts();
-        getActualOutputs();
+        
+        setOutputList([]);
+        setActualOutputList([]);
+        setAdditionalOutputs([]);
         setBox(false)
+        setInitial(false);   
+        
     }
 
-    const [box, setBox] = useState(true)
-
+    
+        
 
     const getMonitoringShifts = () => {
+    
+        
         let data = {
             ts_start: moment(startDate).format("YYYY-MM-DD 00:00:00"),
             ts_end: moment(endDate).format("YYYY-MM-DD 23:59:59"),
             user_id: JSON.parse(localStorage.getItem('credentials'))['credentials']['user_id']
         }
+
+        
+
         axios.post(`http://192.168.150.110:5000/api/shift_checker/get_shift_data`, data).then((response)=> {
             let output = {
                 logframe: '2.3.2 Monitoring Operations',
                 actual_output: '',
                 remarks: ''
             }
+            console.log(response);
             if (response.status === 200) {
                 response.data.forEach(element => {
                     output.actual_output = output.actual_output + `${moment(element.date).format('LL')} ${element.ampm} Shift`
                     element.data.forEach(alert => {
-                       output.actual_output = output.actual_output + ` - ${alert.internal_alert} (${alert.site_code.toUpperCase()})\n`
+                       output.actual_output = output.actual_output + "\n" + ` - ${alert.internal_alert} (${alert.site_code.toUpperCase()})`
                        if (alert.general_status != 'on-going') {
-                        output.remarks = output.remarks + ` - ${alert.general_status == 'lowering' && `${alert.site_code.toUpperCase()} had been lowered to A0`}\n`;
-                       }
+
+                        if (alert.general_status == 'lowering'){
+                            output.remarks = output.remarks + ` - ${alert.general_status == 'lowering' && `${alert.site_code.toUpperCase()} has been lowered to A0`}\n`;
+
+                        }
+                        
+                        
+                       } 
+                   
                     });
                     output.actual_output = output.actual_output + "\n";
                 });
+                
                 setOutputList([...outputList, output]);
+
+                
             }
         })
+
+        
     }
 
     const getActualOutputs = () => {
@@ -145,6 +191,7 @@ const GenerateMonthlyAccomplishment = () => {
             }
         });
     }
+
 
     return (
         <Fragment>
@@ -236,6 +283,7 @@ const GenerateMonthlyAccomplishment = () => {
                             {({ toPdf }) => <button onClick={()=> {
                                 toPdf();
                                 setBox(true);
+                                
                             }}
                                 >Generate Pdf</button>}
                         </Pdf>
@@ -246,11 +294,11 @@ const GenerateMonthlyAccomplishment = () => {
                                 width: box == true ? '100%' : window.innerWidth-1063,
                                 height: box == true ? window.innerHeight-150 : window.innerHeight+200,
                                 border: '1px solid',
-                                backgroundColor: '#f5f5f5',
-                                '&:hover': {
-                                    backgroundColor: 'white',
-                                    opacity: [0.9, 0.8, 0.7],
-                                },
+                                // backgroundColor: '#f5f5f5',
+                                // '&:hover': {
+                                //     backgroundColor: 'white',
+                                //     opacity: [0.9, 0.8, 0.7],
+                                // },
                             }}
                             >
                                 <Container >
@@ -296,20 +344,20 @@ const GenerateMonthlyAccomplishment = () => {
                                             </table>
                                         {/* </Grid> */}
                                         {/* <Grid item xs={12} sx={{position: 'absolute', top: window.innerHeight - 300, width: '25rem'}}> */}
-                                            <Grid container spacing={2} sx={{position: 'absolute', top: window.innerHeight - 300, width: '25rem', marginTop: 5 }}>
+                                            <Grid container spacing={2} sx={{position: 'absolute', top: box == true ? window.innerHeight - 200 : window.innerHeight, width: '25rem', marginTop: 5 }}>
                                                 <Grid item xs={6}>
                                                     <Container>
                                                         <Grid container spacing={2}>
                                                             <Grid item sx={{textAlign: 'left'}}>
-                                                                <Typography sx={{fontSize: 9, pb: 2}}>
+                                                                <Typography sx={{fontSize: 12, pb: 2}}>
                                                                     Submitted by:
                                                                 </Typography>
                                                             </Grid>
                                                             <Grid item sx={{textAlign: 'left'}}>
-                                                                <Typography sx={{fontSize: 9, fontWeight: 'bold', textDecoration: 'underline'}}>
+                                                                <Typography sx={{fontSize: 10, fontWeight: 'bold', textDecoration: 'underline'}}>
                                                                     {`${JSON.parse(localStorage.getItem('credentials'))['credentials']['first_name'].toUpperCase()} ${JSON.parse(localStorage.getItem('credentials'))['credentials']['last_name'].toUpperCase()}`}
                                                                 </Typography>
-                                                                <Typography sx={{fontSize: 9,}}>
+                                                                <Typography sx={{fontSize: 10,}}>
                                                                     {jobTitle}
                                                                 </Typography>
                                                             </Grid>
@@ -320,15 +368,15 @@ const GenerateMonthlyAccomplishment = () => {
                                                     <Container>
                                                         <Grid container spacing={2} sx={{marginLeft: box == true ? 0 : 30}}>
                                                             <Grid item sx={{textAlign: 'left'}}>
-                                                                <Typography sx={{fontSize: 9, pb: 2}}>
+                                                                <Typography sx={{fontSize: 12, pb: 2}}>
                                                                     Noted by:
                                                                 </Typography>
                                                             </Grid>
                                                             <Grid item sx={{textAlign: 'left'}}>
-                                                                <Typography sx={{fontSize: 9, fontWeight: 'bold', textDecoration: 'underline'}}>
+                                                                <Typography sx={{fontSize: 10, fontWeight: 'bold', textDecoration: 'underline'}}>
                                                                     {`ROY ALBERT N. KAIMO`}
                                                                 </Typography>
-                                                                <Typography sx={{fontSize: 9}}>
+                                                                <Typography sx={{fontSize: 10}}>
                                                                     Project Chief Technical Specialist
                                                                 </Typography>
                                                             </Grid>
@@ -339,15 +387,15 @@ const GenerateMonthlyAccomplishment = () => {
                                                     <Container>
                                                         <Grid container spacing={2}>
                                                             <Grid item sx={{textAlign: 'left'}}>
-                                                                <Typography sx={{fontSize: 9, pb: 1}}>
+                                                                <Typography sx={{fontSize: 12, pb: 1}}>
                                                                     Approved by:
                                                                 </Typography>
                                                             </Grid>
                                                             <Grid item sx={{textAlign: 'left'}}>
-                                                                <Typography sx={{fontSize: 9, fontWeight: 'bold', textDecoration: 'underline'}}>
+                                                                <Typography sx={{fontSize: 10, fontWeight: 'bold', textDecoration: 'underline'}}>
                                                                     {`DR. Teresito C. Bacolcol`}
                                                                 </Typography>
-                                                                <Typography sx={{fontSize: 9}}>
+                                                                <Typography sx={{fontSize: 10}}>
                                                                     Director, DOST-PHIVOLCS
                                                                 </Typography>
                                                             </Grid>
